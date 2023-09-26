@@ -6,7 +6,7 @@ const connection = db.createConnection({
   host: process.env.DB_HOST,
   user: 'root',
   password: '',
-  database: 'bumi-test',
+  database: 'db_kampus',
 });
 
 connection.connect((err) => {

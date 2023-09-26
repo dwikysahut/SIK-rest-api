@@ -3,7 +3,8 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
 const db = require('./src/config/db.config');
-// const routeNavigator = require('./src/routes');
+const { errorMiddleware } = require('./src/middleware/errorMiddleware');
+const routeNavigator = require('./src/routes');
 
 const app = express();
 require('dotenv').config();
@@ -23,4 +24,5 @@ app.use(cors({
   optionSuccessStatus: 200,
 }));
 
-// app.use(routeNavigator);
+app.use('/', routeNavigator);
+app.use(errorMiddleware);
