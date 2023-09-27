@@ -11,7 +11,7 @@ module.exports = {
     });
   }),
   register: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO user set?', setData, (error, result) => {
+    connection.query('INSERT INTO user set ?', setData, (error, result) => {
       if (!error) {
         const newResult = {
           id: result.insertId,
