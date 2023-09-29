@@ -22,7 +22,7 @@ module.exports = {
   getKelasById: (id) => new Promise((resolve, reject) => {
     connection.query('SELECT * FROM kelas where id_kelas=?', id, (error, result) => {
       if (!error) {
-        resolve(result);
+        resolve(result[0]);
       } else {
         reject(error);
       }

@@ -10,11 +10,10 @@ module.exports = {
   }),
   getProdiById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const checkData = await prodiModel.getProdiById(id);
-    if (!checkData) {
+    const result = await prodiModel.getProdiById(id);
+    if (!result) {
       return next(customErrorApi(404, 'ID Not Found'));
     }
-    const result = await prodiModel.getProdiById(id);
 
     return helpers.response(res, 200, 'Get Prodi By ID Successfully', result);
   }),
