@@ -69,4 +69,14 @@ module.exports = {
 
     return helpers.response(res, 200, 'Register Berhasil', result);
   }),
+  logout: promiseHandler((req, res, next) => {
+    const { token } = req.body;
+    const findIndex = refreshTokens.findIndex((item) => item == token);
+    if (findIndex == -1) {
+      return helpers.response(res, 200, 'Logout Berhasil', {});
+    }
+    refreshTokens.splice(findIndex, 1);
+    return helpers.response(res, 200, 'Logout Berhasil', {});
+  }),
+
 };
