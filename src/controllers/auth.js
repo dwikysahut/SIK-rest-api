@@ -1,5 +1,6 @@
+/* eslint-disable camelcase */
 const generatorPassword = require('generate-password');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const helpers = require('../helpers');
 const { customErrorApi } = require('../helpers/CustomError');
@@ -7,19 +8,20 @@ const { promiseHandler } = require('../middleware/promiseHandler');
 const authModel = require('../models/auth');
 
 const refreshTokens = [];
+
 module.exports = {
   login: promiseHandler(async (req, res, next) => {
     const { email, password } = req.body;
     const checkData = await authModel.getUserByUsername(email);
     console.log(checkData);
     if (!checkData) {
-      return next(customErrorApi(404, 'Username atau Password Salah'));
+      return next(customErrorApi(401, 'Username atau Password Salah'));
     }
 
     const passwordCompare = bcrypt.compareSync(password, checkData.password);
     if (!passwordCompare) {
       console.log('nyambung');
-      return next(customErrorApi(404, 'Username atau Password Salah'));
+      return next(customErrorApi(401, 'Username atau Password Salah'));
     }
     delete checkData.password;
     delete checkData.created_at;
@@ -69,13 +71,16 @@ module.exports = {
 
     return helpers.response(res, 200, 'Register Berhasil', result);
   }),
-  logout: promiseHandler((req, res, next) => {
+  logout: promiseHandler(async (req, res, next) => {
+    console.log(refreshTokens)
     const { token } = req.body;
     const findIndex = refreshTokens.findIndex((item) => item == token);
     if (findIndex == -1) {
       return helpers.response(res, 200, 'Logout Berhasil', {});
     }
+
     refreshTokens.splice(findIndex, 1);
+    console.log(refreshTokens)
     return helpers.response(res, 200, 'Logout Berhasil', {});
   }),
 

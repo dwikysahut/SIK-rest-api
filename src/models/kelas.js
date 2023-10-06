@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllKelas: () => new Promise((resolve, reject) => {
-    connection.query('SELECT kelas.*, program_studi.nama FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi', (error, result) => {
+    connection.query('SELECT kelas.*, program_studi.nama as nama_prodi FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi', (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -11,7 +11,7 @@ module.exports = {
     });
   }),
   getKelasByProdi: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT kelas.*, program_studi.nama FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi WHERE kelas.id_program_studi=?', id, (error, result) => {
+    connection.query('SELECT kelas.*, program_studi.nama as nama_prodi FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi WHERE kelas.id_program_studi=?', id, (error, result) => {
       if (!error) {
         resolve(result);
       } else {
