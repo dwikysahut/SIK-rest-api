@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const generatorPassword = require('generate-password');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -9,22 +10,22 @@ const authModel = require('../models/auth');
 const refreshTokens = [];
 module.exports = {
   login: promiseHandler(async (req, res, next) => {
-    const { email, password } = req.body;
-    const checkData = await authModel.getUserByUsername(email);
+    const { user_email, user_password } = req.body;
+    const checkData = await authModel.getUserByUsername(user_email);
     console.log(checkData);
     if (!checkData) {
       return next(customErrorApi(404, 'Username atau Password Salah'));
     }
 
-    const passwordCompare = bcrypt.compareSync(password, checkData.password);
+    const passwordCompare = bcrypt.compareSync(user_password, checkData.password);
     if (!passwordCompare) {
       console.log('nyambung');
       return next(customErrorApi(404, 'Username atau Password Salah'));
     }
-    delete checkData.password;
+    delete checkData.user_password;
     delete checkData.created_at;
     delete checkData.updated_at;
-    delete checkData.id_user;
+    delete checkData.user_id;
     const token = jwt.sign({ checkData }, process.env.SECRET_KEY);
     const refreshToken = jwt.sign(
       { checkData },
@@ -41,25 +42,25 @@ module.exports = {
   }),
   register: promiseHandler(async (req, res, next) => {
     const {
-      id_role, email, nama,
+      user_role_role_id, user_email, user_full_name, user_password,
     } = req.body;
 
     const checkData = await authModel.getUserByUsername(email);
     if (checkData) {
       return next(customErrorApi(401, 'Email telah terdaftar'));
     }
-    const password = generatorPassword.generate({ length: 10, numbers: true });
+    // const password = generatorPassword.generate({ length: 10, numbers: true });
 
-    const passwordHash = bcrypt.hashSync(password, 6);
-    const htmlTemplate = `<center><h2>Password : </h2><hr><h4>pass : ${password}</h4></center>`;
-    const emailSending = await helpers.nodemailer(email, 'Password', htmlTemplate);
+    const passwordHash = bcrypt.hashSync(user_password, 6);
+    const htmlTemplate = `<center><h2>Password : </h2><hr><h4>pass : ${user_password}</h4></center>`;
+    const emailSending = await helpers.nodemailer(user_email, 'Password', htmlTemplate);
     console.log(emailSending);
 
     const result = await authModel.register({
-      id_role,
-      email,
-      password: passwordHash,
-      nama,
+      user_role_role_id,
+      user_email,
+      user_password: passwordHash,
+      user_full_name,
     });
 
     const newResult = {

@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllKelas: () => new Promise((resolve, reject) => {
-    connection.query('SELECT kelas.*, program_studi.nama FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi', (error, result) => {
+    connection.query('SELECT * from class', (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -11,7 +11,7 @@ module.exports = {
     });
   }),
   getKelasByProdi: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT kelas.*, program_studi.nama FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi WHERE kelas.id_program_studi=?', id, (error, result) => {
+    connection.query('SELECT class.*, program_studi.nama FROM kelas INNER JOIN program_studi ON kelas.id_program_studi=program_studi.id_program_studi WHERE kelas.id_program_studi=?', id, (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -20,7 +20,7 @@ module.exports = {
     });
   }),
   getKelasById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM kelas where id_kelas=?', id, (error, result) => {
+    connection.query('SELECT * FROM class where class_id=?', id, (error, result) => {
       if (!error) {
         resolve(result[0]);
       } else {
@@ -29,10 +29,10 @@ module.exports = {
     });
   }),
   postKelas: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO kelas set ?', setData, (error, result) => {
+    connection.query('INSERT INTO class set ?', setData, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(result.insertId, 10),
+          class_id: parseInt(result.insertId, 10),
           ...setData,
         };
         resolve(newData);
@@ -42,10 +42,10 @@ module.exports = {
     });
   }),
   putKelas: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE kelas set ? WHERE id_kelas=?', [setData, id], (error, result) => {
+    connection.query('UPDATE class set ? WHERE class_id=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          class_id: parseInt(id, 10),
           ...result,
           field: { id: parseInt(id, 10), ...setData },
 
@@ -57,10 +57,10 @@ module.exports = {
     });
   }),
   deleteKelas: (id) => new Promise((resolve, reject) => {
-    connection.query('DELETE FROM kelas WHERE id_kelas=?', id, (error, result) => {
+    connection.query('DELETE FROM class WHERE class_id=?', id, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          class_id: parseInt(id, 10),
           ...result,
         };
         resolve(newData);

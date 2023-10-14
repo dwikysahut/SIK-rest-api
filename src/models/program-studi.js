@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllProgramStudi: () => new Promise((resolve, reject) => {
-    connection.query('SELECT * from program_studi', (error, result) => {
+    connection.query('SELECT * from majors', (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -11,7 +11,7 @@ module.exports = {
     });
   }),
   getProdiById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * from program_studi WHERE id_program_studi=?', id, (error, result) => {
+    connection.query('SELECT * from majors WHERE majors_id=?', id, (error, result) => {
       if (!error) {
         resolve(result[0]);
       } else {
@@ -20,10 +20,10 @@ module.exports = {
     });
   }),
   postProgramStudi: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO program_studi set ?', setData, (error, result) => {
+    connection.query('INSERT INTO majors set ?', setData, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(result.insertId, 10),
+          majors_id: parseInt(result.insertId, 10),
           ...setData,
         };
         resolve(newData);
@@ -33,10 +33,10 @@ module.exports = {
     });
   }),
   putProgramStudi: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE program_studi set ? WHERE id_program_studi=?', [setData, id], (error, result) => {
+    connection.query('UPDATE majors set ? WHERE majors=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          majors_id: parseInt(id, 10),
           ...result,
           field: { id: parseInt(id, 10), ...setData },
 
@@ -51,7 +51,7 @@ module.exports = {
     connection.query('DELETE FROM program_studi WHERE id_program_studi=?', id, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          majors_id: parseInt(id, 10),
           ...result,
         };
         resolve(newData);

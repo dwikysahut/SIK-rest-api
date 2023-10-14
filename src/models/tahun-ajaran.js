@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllTahunAjaran: () => new Promise((resolve, reject) => {
-    connection.query('SELECT tahun_ajaran.* from tahun_ajaran', (error, result) => {
+    connection.query('SELECT period.* from period', (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -12,7 +12,7 @@ module.exports = {
   }),
 
   getTahunAjaranById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM tahun_ajaran where id_tahun_ajaran=?', id, (error, result) => {
+    connection.query('SELECT * FROM period where period_id=?', id, (error, result) => {
       if (!error) {
         resolve(result[0]);
       } else {
@@ -21,10 +21,10 @@ module.exports = {
     });
   }),
   postTahunAjaran: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO tahun_ajaran set ?', setData, (error, result) => {
+    connection.query('INSERT INTO period set ?', setData, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(result.insertId, 10),
+          period_id: parseInt(result.insertId, 10),
           ...setData,
         };
         resolve(newData);
@@ -34,10 +34,10 @@ module.exports = {
     });
   }),
   putTahunAjaran: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE tahun_ajaran set ? WHERE id_tahun_ajaran=?', [setData, id], (error, result) => {
+    connection.query('UPDATE period set ? WHERE period_id=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          period_id: parseInt(id, 10),
           ...result,
           field: { id: parseInt(id, 10), ...setData },
 
@@ -49,10 +49,10 @@ module.exports = {
     });
   }),
   putTahunAjaranStatusNotIn: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE tahun_ajaran set ? WHERE id_tahun_ajaran<>?', [setData, id], (error, result) => {
+    connection.query('UPDATE period set ? WHERE period_id<>?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          period_id: parseInt(id, 10),
           ...result,
           field: { id: parseInt(id, 10), ...setData },
 
@@ -64,10 +64,10 @@ module.exports = {
     });
   }),
   deleteTahunAjaran: (id) => new Promise((resolve, reject) => {
-    connection.query('DELETE FROM tahun_ajaran WHERE id_tahun_ajaran=?', id, (error, result) => {
+    connection.query('DELETE FROM period WHERE period_id=?', id, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          period_id: parseInt(id, 10),
           ...result,
         };
         resolve(newData);

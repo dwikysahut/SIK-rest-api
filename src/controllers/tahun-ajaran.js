@@ -31,6 +31,11 @@ module.exports = {
     const { body } = req;
 
     const result = await tahunAjaranModel.postTahunAjaran(body);
+    console.log(result);
+
+    if (body.period_status == 1) {
+      await tahunAjaranModel.putTahunAjaranStatusNotIn(result.period_id, { period_status: 0 });
+    }
     return helpers.response(res, 200, 'POST Tahun Ajaran Successfully', result);
   }),
   putTahunAjaran: promiseHandler(async (req, res, next) => {
@@ -57,8 +62,8 @@ module.exports = {
       return next(customErrorApi(404, 'ID Not Found'));
     }
 
-    if (body.status == 1 && body.status != checkData.status) {
-      const result1 = await tahunAjaranModel.putTahunAjaranStatusNotIn(id, { status: 0 });
+    if (body.period_status == 1 && body.period_status != checkData.period_status) {
+      const result1 = await tahunAjaranModel.putTahunAjaranStatusNotIn(id, { period_status: 0 });
     }
     const result = await tahunAjaranModel.putTahunAjaran(id, body);
     await connection.commit();
