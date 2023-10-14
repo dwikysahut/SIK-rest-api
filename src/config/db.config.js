@@ -10,9 +10,8 @@ const connection = db.createConnection({
 });
 
 connection.connect((err) => {
-  if (err) {
-    throw new Error(err);
-  }
+  if (err) throw err;
+
   console.log('database connected');
 });
 connection.query = bluebird.promisify(connection.query);
