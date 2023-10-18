@@ -17,12 +17,11 @@ module.exports = {
     if (!checkData) {
       return next(customErrorApi(401, 'Username atau Password Salah'));
     }
-
-    const passwordCompare = bcrypt.compareSync(user_password, checkData.password);
+    const passwordCompare = bcrypt.compareSync(user_password, checkData.user_password);
     if (!passwordCompare) {
-      console.log('nyambung');
       return next(customErrorApi(401, 'Username atau Password Salah'));
     }
+    console.log('this');
     delete checkData.user_password;
     delete checkData.created_at;
     delete checkData.updated_at;
@@ -38,7 +37,7 @@ module.exports = {
       token,
       refreshToken,
     };
-
+    console.log(result);
     return helpers.response(res, 200, 'Login Berhasil', result);
   }),
   register: promiseHandler(async (req, res, next) => {
@@ -46,7 +45,7 @@ module.exports = {
       user_role_role_id, user_email, user_full_name, user_password,
     } = req.body;
 
-    const checkData = await authModel.getUserByUsername(email);
+    const checkData = await authModel.getUserByUsername(user_email);
     if (checkData) {
       return next(customErrorApi(401, 'Email telah terdaftar'));
     }
@@ -72,7 +71,7 @@ module.exports = {
     return helpers.response(res, 200, 'Register Berhasil', result);
   }),
   logout: promiseHandler(async (req, res, next) => {
-    console.log(refreshTokens)
+    console.log(refreshTokens);
     const { token } = req.body;
     const findIndex = refreshTokens.findIndex((item) => item == token);
     if (findIndex == -1) {
@@ -80,7 +79,7 @@ module.exports = {
     }
 
     refreshTokens.splice(findIndex, 1);
-    console.log(refreshTokens)
+    console.log(refreshTokens);
     return helpers.response(res, 200, 'Logout Berhasil', {});
   }),
 

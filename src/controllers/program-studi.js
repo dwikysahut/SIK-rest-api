@@ -21,7 +21,7 @@ module.exports = {
     const { body } = req;
 
     const result = await prodiModel.postProgramStudi(body);
-    return helpers.response(res, 200, 'POST Prodi Successfully', result);
+    return helpers.response(res, 200, 'Data Prodi Berhasil Ditambahkan', result);
   }),
   putProdi: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -31,7 +31,7 @@ module.exports = {
       return next(customErrorApi(404, 'ID Not Found'));
     }
     const result = await prodiModel.putProgramStudi(id, body);
-    return helpers.response(res, 200, 'PUT Prodi Successfully', result);
+    return helpers.response(res, 200, 'Data Prodi Berhasil Diubah', result);
   }),
   deleteProdi: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -41,6 +41,6 @@ module.exports = {
       return next(customErrorApi(404, 'ID Not Found'));
     }
     const result = await prodiModel.deleteProgramStudi(id);
-    return helpers.response(res, 200, 'DELETE Prodi Successfully', result);
+    return helpers.response(res, 200, 'Data Prodi Berhasil Dihapus', result);
   }),
 };

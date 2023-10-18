@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getUserByUsername: (email) => new Promise((resolve, reject) => {
-    connection.query('SELECT * from user where email=?', email, (error, result) => {
+    connection.query('SELECT * from users where user_email=?', email, (error, result) => {
       if (!error) {
         resolve(result[0]);
       } else {
@@ -11,7 +11,7 @@ module.exports = {
     });
   }),
   register: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO user set ?', setData, (error, result) => {
+    connection.query('INSERT INTO users set ?', setData, (error, result) => {
       if (!error) {
         const newResult = {
           id: result.insertId,

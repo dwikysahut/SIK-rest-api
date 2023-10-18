@@ -30,7 +30,7 @@ module.exports = {
     const { body } = req;
 
     const result = await kelasModel.postKelas(body);
-    return helpers.response(res, 200, 'POST Kelas Successfully', result);
+    return helpers.response(res, 200, 'Data Kelas Berhasil Ditambahkan', result);
   }),
   putKelas: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -40,7 +40,7 @@ module.exports = {
       return next(customErrorApi(404, 'ID Not Found'));
     }
     const result = await kelasModel.putKelas(id, body);
-    return helpers.response(res, 200, 'PUT Kelas Successfully', result);
+    return helpers.response(res, 200, 'Data Kelas Berhasil Diubah', result);
   }),
   deleteKelas: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -50,6 +50,6 @@ module.exports = {
       return next(customErrorApi(404, 'ID Not Found'));
     }
     const result = await kelasModel.deleteKelas(id);
-    return helpers.response(res, 200, 'DELETE Kelas Successfully', result);
+    return helpers.response(res, 200, 'Data Kelas Berhasil Dihapus', result);
   }),
 };

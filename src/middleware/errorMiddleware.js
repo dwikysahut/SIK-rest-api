@@ -9,6 +9,7 @@ module.exports = {
       return helpers.response(res, error.statusCode, error.message);
     }
     await connection.rollback();
+    console.log(error);
     return helpers.response(res, 500, `Internal Server Error,${error.message}`);
   },
 };

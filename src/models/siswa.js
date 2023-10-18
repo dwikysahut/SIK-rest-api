@@ -1,8 +1,8 @@
 const connection = require('../config/db.config');
 
 module.exports = {
-  getAllSiswa: () => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM view_siswa', (error, result) => {
+  getAllSiswa: (query) => new Promise((resolve, reject) => {
+    connection.query(`SELECT * FROM view_student ${query == '' ? '' : `WHERE ${query}`}`, (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -11,7 +11,7 @@ module.exports = {
     });
   }),
   getSiswaById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM view_siswa WHERE id_siswa=?', id, (error, result) => {
+    connection.query('SELECT * FROM view_student WHERE student_id=?', id, (error, result) => {
       if (!error) {
         resolve(result[0]);
       } else {
@@ -20,7 +20,7 @@ module.exports = {
     });
   }),
   getAllSiswaByStatus: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM view_siswa WHERE id_status=?', id, (error, result) => {
+    connection.query('SELECT * FROM view_student WHERE student_status=?', id, (error, result) => {
       if (!error) {
         resolve(result);
       } else {
@@ -29,10 +29,10 @@ module.exports = {
     });
   }),
   postSiswa: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO siswa set ?', setData, (error, result) => {
+    connection.query('INSERT INTO student set ?', setData, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(result.insertId, 10),
+          student_id: parseInt(result.insertId, 10),
           ...setData,
         };
         resolve(newData);
@@ -42,10 +42,10 @@ module.exports = {
     });
   }),
   putSiswa: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE siswa set ? WHERE id_siswa=?', [setData, id], (error, result) => {
+    connection.query('UPDATE student set ? WHERE student_id=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          student_id: parseInt(id, 10),
           ...result,
           field: { id: parseInt(id, 10), ...setData },
 
@@ -57,10 +57,10 @@ module.exports = {
     });
   }),
   deletSiswa: (id) => new Promise((resolve, reject) => {
-    connection.query('DELETE FROM siswa WHERE id_siswa=?', id, (error, result) => {
+    connection.query('DELETE FROM student WHERE student_id=?', id, (error, result) => {
       if (!error) {
         const newData = {
-          id: parseInt(id, 10),
+          student_id: parseInt(id, 10),
           ...result,
         };
         resolve(newData);

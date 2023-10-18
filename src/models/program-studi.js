@@ -33,7 +33,7 @@ module.exports = {
     });
   }),
   putProgramStudi: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE majors set ? WHERE majors=?', [setData, id], (error, result) => {
+    connection.query('UPDATE majors set ? WHERE majors_id=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
           majors_id: parseInt(id, 10),
@@ -48,7 +48,7 @@ module.exports = {
     });
   }),
   deleteProgramStudi: (id) => new Promise((resolve, reject) => {
-    connection.query('DELETE FROM program_studi WHERE id_program_studi=?', id, (error, result) => {
+    connection.query('DELETE FROM majors WHERE majors_id=?', id, (error, result) => {
       if (!error) {
         const newData = {
           majors_id: parseInt(id, 10),

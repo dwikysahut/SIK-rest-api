@@ -35,4 +35,15 @@ module.exports = {
       return true;
     });
   },
+  queryToString: (query) => {
+    let result = '';
+    for (const key in query) {
+      if (query[key] == undefined || query[key] === '') {
+        continue;
+      }
+      result += `${key} LIKE'${query[key] || ''}' AND `;
+    }
+    const filter = result.replace(/AND\s$/g, '');
+    return filter;
+  },
 };

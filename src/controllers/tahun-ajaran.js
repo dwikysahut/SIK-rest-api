@@ -36,7 +36,7 @@ module.exports = {
     if (body.period_status == 1) {
       await tahunAjaranModel.putTahunAjaranStatusNotIn(result.period_id, { period_status: 0 });
     }
-    return helpers.response(res, 200, 'POST Tahun Ajaran Successfully', result);
+    return helpers.response(res, 200, 'Data Tahun Ajaran Berhasil Ditambahkan', result);
   }),
   putTahunAjaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -50,7 +50,7 @@ module.exports = {
 
     const result = await tahunAjaranModel.putTahunAjaran(id, body);
 
-    return helpers.response(res, 200, 'PUT Tahun Ajaran Successfully', result);
+    return helpers.response(res, 200, 'Data Tahun Ajaran Berhasil Diubah', result);
   }),
   putStatusTahunAjaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -68,7 +68,7 @@ module.exports = {
     const result = await tahunAjaranModel.putTahunAjaran(id, body);
     await connection.commit();
 
-    return helpers.response(res, 200, 'PUT Status Tahun Ajaran Successfully', result);
+    return helpers.response(res, 200, 'Data Tahun Ajaran Berhasil Diubah', result);
   }, true),
   deleteTahunAjaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -78,6 +78,6 @@ module.exports = {
       return next(customErrorApi(404, 'ID Not Found'));
     }
     const result = await tahunAjaranModel.deleteTahunAjaran(id);
-    return helpers.response(res, 200, 'DELETE Tahun Ajaran Successfully', result);
+    return helpers.response(res, 200, 'Data Tahun Ajaran Berhasil Dihapus', result);
   }),
 };
