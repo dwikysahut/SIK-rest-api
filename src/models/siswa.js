@@ -56,6 +56,21 @@ module.exports = {
       }
     });
   }),
+  putStatusSiswa: (id, setData) => new Promise((resolve, reject) => {
+    connection.query(`UPDATE student set ? WHERE student_id IN ${id}`, [setData], (error, result) => {
+      if (!error) {
+        const newData = {
+          student_id: parseInt(id, 10),
+          ...result,
+          field: { id: parseInt(id, 10), ...setData },
+
+        };
+        resolve(newData);
+      } else {
+        reject(error);
+      }
+    });
+  }),
   deletSiswa: (id) => new Promise((resolve, reject) => {
     connection.query('DELETE FROM student WHERE student_id=?', id, (error, result) => {
       if (!error) {
