@@ -26,7 +26,7 @@ module.exports = {
     delete checkData.created_at;
     delete checkData.updated_at;
     delete checkData.user_id;
-    const token = jwt.sign({ checkData }, process.env.SECRET_KEY);
+    const token = jwt.sign({ ...checkData }, process.env.SECRET_KEY);
     const refreshToken = jwt.sign(
       { checkData },
       process.env.REFRESH_TOKEN_SECRET_KEY,
@@ -39,6 +39,15 @@ module.exports = {
     };
     console.log(result);
     return helpers.response(res, 200, 'Login Berhasil', result);
+  }),
+  checkMe: promiseHandler(async (req, res, next) => {
+    const { token } = req;
+    console.log(token);
+    const result = await authModel.getUserByUsername(token.user_email);
+    if (!result) {
+      return next(customErrorApi(404, 'Data tidak ditemukan'));
+    }
+    return helpers.response(res, 200, 'Get Data User Berhasil', { ...result });
   }),
   register: promiseHandler(async (req, res, next) => {
     const {

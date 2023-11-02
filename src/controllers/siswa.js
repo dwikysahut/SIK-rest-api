@@ -1,3 +1,4 @@
+const moment = require('moment');
 const helpers = require('../helpers');
 const { customErrorApi } = require('../helpers/CustomError');
 const { promiseHandler } = require('../middleware/promiseHandler');
@@ -52,18 +53,27 @@ module.exports = {
   }),
   postSiswa: promiseHandler(async (req, res, next) => {
     const { body } = req;
+    const newBody = {
+      ...body,
+      student_input_date: moment().format('YYYY-MM-DD  HH:mm:ss.000'),
+      student_last_update: moment().format('YYYY-MM-DD  HH:mm:ss.000'),
+    };
 
-    const result = await siswaModel.postSiswa(body);
+    const result = await siswaModel.postSiswa(newBody);
     return helpers.response(res, 200, 'Data Siswa Berhasil Ditambahkan', result);
   }),
   putSiswa: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
     const { body } = req;
+    const newBody = {
+      ...body,
+      student_last_update: moment().format('YYYY-MM-DD  HH:mm:ss.000'),
+    };
     const checkData = await siswaModel.getSiswaById(id);
     if (!checkData) {
       return next(customErrorApi(404, 'ID Not Found'));
     }
-    const result = await siswaModel.putKelas(id, body);
+    const result = await siswaModel.putSiswa(id, newBody);
     return helpers.response(res, 200, 'Data Siswa Berhasil Diubah', result);
   }),
   deleteSiswa: promiseHandler(async (req, res, next) => {
