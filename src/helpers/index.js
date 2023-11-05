@@ -43,6 +43,7 @@ module.exports = {
       }
       result += `${key} LIKE'${query[key] || ''}' AND `;
     }
+
     const filter = result.replace(/AND\s$/g, '');
     return filter;
   },

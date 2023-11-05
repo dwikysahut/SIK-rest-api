@@ -5,6 +5,7 @@ const kelasRoutes = require('./kelas');
 const tahunAjaranRoutes = require('./tahun-ajaran');
 const statusSiswaRoutes = require('./status-siswa');
 const siswaRoutes = require('./siswa');
+const alumniRoutes = require('./alumni');
 
 const Routes = express.Router();
 
@@ -14,5 +15,6 @@ Routes.use('/kelas', kelasRoutes);
 Routes.use('/tahun-ajaran', tahunAjaranRoutes);
 Routes.use('/status-siswa', statusSiswaRoutes);
 Routes.use('/siswa', siswaRoutes);
+Routes.use('/alumni', alumniRoutes);
 
 module.exports = Routes;
