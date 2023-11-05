@@ -60,20 +60,21 @@ module.exports = {
   //     const result = await siswaModel.postSiswa(newBody);
   //     return helpers.response(res, 200, 'Data Siswa Berhasil Ditambahkan', result);
   //   }),
-  //   putSiswa: promiseHandler(async (req, res, next) => {
-  //     const { id } = req.params;
-  //     const { body } = req;
-  //     const newBody = {
-  //       ...body,
-  //       student_last_update: moment().format('YYYY-MM-DD  HH:mm:ss.000'),
-  //     };
-  //     const checkData = await siswaModel.getSiswaById(id);
-  //     if (!checkData) {
-  //       return next(customErrorApi(404, 'ID Not Found'));
-  //     }
-  //     const result = await siswaModel.putSiswa(id, newBody);
-  //     return helpers.response(res, 200, 'Data Siswa Berhasil Diubah', result);
-  //   }),
+  putAlumni: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const { body } = req;
+    console.log(body);
+    const newBody = {
+      ...body,
+      student_last_update: moment().format('YYYY-MM-DD  HH:mm:ss.000'),
+    };
+    const checkData = await alumniModel.getAlumniById(id);
+    if (!checkData) {
+      return next(customErrorApi(404, 'ID Not Found'));
+    }
+    const result = await alumniModel.putAlumni(id, newBody);
+    return helpers.response(res, 200, 'Data Siswa Berhasil Diubah', result);
+  }),
   //   putStatusSiswa: promiseHandler(async (req, res, next) => {
   //     const { id } = req.params;
   //     const { body } = req;

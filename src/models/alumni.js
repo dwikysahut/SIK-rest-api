@@ -20,20 +20,20 @@ module.exports = {
     });
   }),
 
-  postSiswa: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO student set ?', setData, (error, result) => {
-      if (!error) {
-        const newData = {
-          student_id: parseInt(result.insertId, 10),
-          ...setData,
-        };
-        resolve(newData);
-      } else {
-        reject(error);
-      }
-    });
-  }),
-  putSiswa: (id, setData) => new Promise((resolve, reject) => {
+  // postSiswa: (setData) => new Promise((resolve, reject) => {
+  //   connection.query('INSERT INTO student set ?', setData, (error, result) => {
+  //     if (!error) {
+  //       const newData = {
+  //         student_id: parseInt(result.insertId, 10),
+  //         ...setData,
+  //       };
+  //       resolve(newData);
+  //     } else {
+  //       reject(error);
+  //     }
+  //   });
+  // }),
+  putAlumni: (id, setData) => new Promise((resolve, reject) => {
     connection.query('UPDATE student set ? WHERE student_id=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
