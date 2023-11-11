@@ -5,7 +5,7 @@ const cors = require('cors');
 const db = require('./src/config/db.config');
 const { errorMiddleware } = require('./src/middleware/errorMiddleware');
 const routeNavigator = require('./src/routes');
-
+//ADD
 const app = express();
 require('dotenv').config();
 
