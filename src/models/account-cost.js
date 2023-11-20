@@ -29,4 +29,16 @@ module.exports = {
       return reject(error);
     });
   }),
+  putAccountCostByTypeAndId: (id, setData) => new Promise((resolve, reject) => {
+    connection.query('UPDATE account SET ? where account_id=?', [setData, id], (error, result) => {
+      if (!error) {
+        const newData = {
+          account_id: id,
+          ...setData,
+        };
+        return resolve(newData);
+      }
+      return reject(error);
+    });
+  }),
 };
