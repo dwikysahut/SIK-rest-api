@@ -9,6 +9,14 @@ module.exports = {
       return reject(error);
     });
   }),
+  getAccountCostById: (id) => new Promise((resolve, reject) => {
+    connection.query('SELECT * FROM account where account_id=?', id, (error, result) => {
+      if (!error) {
+        return resolve(result[0]);
+      }
+      return reject(error);
+    });
+  }),
   getAccountCostByTypeAndId: (code) => new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM account where account_code LIKE'%${code}%' order by account_code ASC`, [], (error, result) => {
       if (!error) {
@@ -17,7 +25,7 @@ module.exports = {
       return reject(error);
     });
   }),
-  postAccountCostByTypeAndId: (setData) => new Promise((resolve, reject) => {
+  postAccountCost: (setData) => new Promise((resolve, reject) => {
     connection.query('INSERT INTO account SET ?', setData, (error, result) => {
       if (!error) {
         const newData = {
@@ -29,8 +37,20 @@ module.exports = {
       return reject(error);
     });
   }),
-  putAccountCostByTypeAndId: (id, setData) => new Promise((resolve, reject) => {
+  putAccountCost: (id, setData) => new Promise((resolve, reject) => {
     connection.query('UPDATE account SET ? where account_id=?', [setData, id], (error, result) => {
+      if (!error) {
+        const newData = {
+          account_id: id,
+          ...setData,
+        };
+        return resolve(newData);
+      }
+      return reject(error);
+    });
+  }),
+  deleteAccountCost: (id) => new Promise((resolve, reject) => {
+    connection.query('DELETE from account where account_id=?', id, (error, result) => {
       if (!error) {
         const newData = {
           account_id: id,

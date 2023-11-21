@@ -6,6 +6,8 @@ const accountCostValidator = require('../validator/account-cost');
 
 Route
   .get('/', accountCostController.getAllAccountCost)
-  .post('/', accountCostValidator, accountCostController.postAccountCost);
+  .post('/', accountCostValidator, accountCostController.postAccountCost)
+  .put('/:id', accountCostValidator, accountCostController.putAccountCost)
+  .delete('/:id', accountCostValidator, accountCostController.deleteAccountCost);
 
 module.exports = Route;
