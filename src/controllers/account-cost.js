@@ -67,7 +67,7 @@ module.exports = {
 
     const result = await accountCostModel.deleteAccountCost(id);
 
-    return helpers.response(res, 200, 'put Account Cost Successfully', result);
+    return helpers.response(res, 200, 'delete Account Cost Successfully', result);
   }),
 
 };

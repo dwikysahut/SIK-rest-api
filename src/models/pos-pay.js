@@ -1,16 +1,16 @@
 const connection = require('../config/db.config');
 
 module.exports = {
-  getAllAccountCost: () => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM account order by account_code ASC', (error, result) => {
+  getAllPosPay: () => new Promise((resolve, reject) => {
+    connection.query('SELECT * FROM pos_pay order by account_account_code DESC', (error, result) => {
       if (!error) {
         return resolve(result);
       }
       return reject(error);
     });
   }),
-  getAccountCostById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM account where account_id=?', id, (error, result) => {
+  getPosPayById: (id) => new Promise((resolve, reject) => {
+    connection.query('SELECT * FROM pos_pay where pos_pay_id=?', id, (error, result) => {
       if (!error) {
         return resolve(result[0]);
       }
@@ -25,11 +25,11 @@ module.exports = {
       return reject(error);
     });
   }),
-  postAccountCost: (setData) => new Promise((resolve, reject) => {
-    connection.query('INSERT INTO account SET ?', setData, (error, result) => {
+  postPosPay: (setData) => new Promise((resolve, reject) => {
+    connection.query('INSERT INTO pos_pay SET ?', setData, (error, result) => {
       if (!error) {
         const newData = {
-          account_id: parseInt(result.insertId, 10),
+          pos_pay_id: parseInt(result.insertId, 10),
           ...setData,
         };
         return resolve(newData);
@@ -37,11 +37,11 @@ module.exports = {
       return reject(error);
     });
   }),
-  putAccountCost: (id, setData) => new Promise((resolve, reject) => {
-    connection.query('UPDATE account SET ? where account_id=?', [setData, id], (error, result) => {
+  putPosPay: (id, setData) => new Promise((resolve, reject) => {
+    connection.query('UPDATE pos_pay SET ? where pos_pay_id=?', [setData, id], (error, result) => {
       if (!error) {
         const newData = {
-          account_id: id,
+          pos_pay_id: id,
           ...setData,
         };
         return resolve(newData);
@@ -50,10 +50,10 @@ module.exports = {
     });
   }),
   deleteAccountCost: (id) => new Promise((resolve, reject) => {
-    connection.query('DELETE from account where account_id=?', id, (error, result) => {
+    connection.query('DELETE from pos_pay where pos_pay_id=?', id, (error, result) => {
       if (!error) {
         const newData = {
-          account_id: id,
+          pos_pay_id: id,
 
         };
         return resolve(newData);
