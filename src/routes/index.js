@@ -8,6 +8,7 @@ const siswaRoutes = require('./siswa');
 const alumniRoutes = require('./alumni');
 const accountCostRoutes = require('./account-cost');
 const posPayRoutes = require('./pos-pay');
+const paymentTypeRoutes = require('./payment-type');
 
 const Routes = express.Router();
 
@@ -20,5 +21,6 @@ Routes.use('/siswa', siswaRoutes);
 Routes.use('/alumni', alumniRoutes);
 Routes.use('/account-cost', accountCostRoutes);
 Routes.use('/pos-pay', posPayRoutes);
+Routes.use('/payment-type', paymentTypeRoutes);
 
 module.exports = Routes;
