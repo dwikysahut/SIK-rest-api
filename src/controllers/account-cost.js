@@ -10,6 +10,31 @@ module.exports = {
     const result = await accountCostModel.getAllAccountCost();
     return helpers.response(res, 200, 'get All Account Cost Successfully', result);
   }),
+  getGenerateCodeAccountCost: promiseHandler(async (req, res, next) => {
+    const { account_code, account_type } = req.body;
+    // console.log(req.body);
+    if (account_type < 3) {
+      const query = account_type == 1 ? `${account_code.slice(0, 4)}` : `${account_code.slice(0, 5)}`;
+      console.log(query);
+
+      const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
+      console.log(checkData);
+
+      const checkDataFilter = account_type == 1 ? checkData.filter((item) => parseInt(item.account_code.split('-')[1], 10) % 100 === 0) : checkData;
+      console.log(checkDataFilter);
+      const lastNumber = checkDataFilter[checkDataFilter.length - 1]?.account_code || 0;
+      const newCode = account_type == 1 ? `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 100}` : `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 1}`;
+      return helpers.response(res, 200, 'get  Account Cost Code Successfully', { code: newCode });
+    }
+
+    const query = account_code;
+    const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
+
+    const lastNumber = checkData[checkData.length - 1].account_code;
+    const newCode = lastNumber.split('.')[account_type - 2] ? `${lastNumber}.${parseInt(lastNumber.split('.')[account_type - 2], 10) + 1}` : `${lastNumber}.1`;
+    return helpers.response(res, 200, 'get  Account Cost Code Successfully', { code: newCode });
+  }),
+
   postAccountCost: promiseHandler(async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -18,20 +43,20 @@ module.exports = {
     const {
       code, account_type, account_description, account_note, account_category, account_majors_id, sekolah_id,
     } = req.body;
-    const query = account_type == 1 ? `${code.slice(0, 4)}` : `${code.slice(0, 5)}`;
+    // const query = account_type == 1 ? `${code.slice(0, 4)}` : `${code.slice(0, 5)}`;
 
-    const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
-    const checkDataFilter = account_type == 1 ? checkData.filter((item) => parseInt(item.account_code.split('-')[1], 10) % 100 === 0) : checkData;
-    console.log(checkDataFilter);
-    const lastNumber = checkDataFilter[checkDataFilter.length - 1].account_code;
-    const newCode = account_type == 1 ? `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 100}` : `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 1}`;
+    // const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
+    // const checkDataFilter = account_type == 1 ? checkData.filter((item) => parseInt(item.account_code.split('-')[1], 10) % 100 === 0) : checkData;
+    // console.log(checkDataFilter);
+    // const lastNumber = checkDataFilter[checkDataFilter.length - 1].account_code;
+    // const newCode = account_type == 1 ? `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 100}` : `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 1}`;
     const setData = {
-      account_code: newCode,
+      account_code: code,
       account_type,
       account_description,
-      account_note,
-      account_category,
-      account_majors_id,
+      account_note: account_note || 0,
+      account_category: account_category || 0,
+      account_majors_id: account_majors_id || 0,
       sekolah_id, // sekolah
     };
     const result = await accountCostModel.postAccountCost(setData);
