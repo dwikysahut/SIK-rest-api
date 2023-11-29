@@ -1,7 +1,7 @@
 const { body } = require('express-validator');
 
 module.exports = [
-  body('code', 'Code tidak boleh kosong').not().isEmpty(),
+  body('account_code', 'Code tidak boleh kosong').not().isEmpty(),
   body('account_type', 'Account Type tidak boleh kosong ').not().isEmpty(),
   body('account_description', 'Account Desc tidak boleh kosong ').not().isEmpty(),
   body('account_note', 'Account note tidak boleh kosong ').not().isEmpty(),

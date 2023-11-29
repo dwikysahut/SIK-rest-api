@@ -41,8 +41,9 @@ module.exports = {
       return helpers.response(res, 442, 'Post data failed', { errors: errors.array() });
     }
     const {
-      code, account_type, account_description, account_note, account_category, account_majors_id, sekolah_id,
+      account_code, account_type, account_description, account_note, account_category, account_majors_id, sekolah_id,
     } = req.body;
+    console.log(account_type);
     // const query = account_type == 1 ? `${code.slice(0, 4)}` : `${code.slice(0, 5)}`;
 
     // const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
@@ -51,7 +52,7 @@ module.exports = {
     // const lastNumber = checkDataFilter[checkDataFilter.length - 1].account_code;
     // const newCode = account_type == 1 ? `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 100}` : `${lastNumber.split('-')[0]}-${parseInt(lastNumber.split('-')[1], 10) + 1}`;
     const setData = {
-      account_code: code,
+      account_code,
       account_type,
       account_description,
       account_note: account_note || 0,
@@ -66,15 +67,15 @@ module.exports = {
   putAccountCost: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
     const {
-      sekolah_id, account_description,
+      sekolah_id, account_description, account_category,
     } = req.body;
 
-    const checkData = await accountCostModel.getAccountCostByTypeAndId(id);
+    const checkData = await accountCostModel.getAccountCostById(id);
     if (!checkData) {
       return next(customErrorApi(404, 'ID Not Found'));
     }
     const setData = {
-
+      account_category,
       account_description,
       sekolah_id, // sekolah
     };
