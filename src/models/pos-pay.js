@@ -2,7 +2,31 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllPosPay: () => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM pos_pay order by account_account_code DESC', (error, result) => {
+    connection.query(`SELECT
+    pos_pay.pos_pay_id,
+    pos_pay.account_account_code,
+    pos_pay.sekolah_id,
+    pos_pay.account_account_credit,
+    pos_pay.pos_pay_name,
+    pos_pay.pos_pay_description,
+    CONCAT(
+        pos_pay.account_account_code,
+        " - ",
+        account1.account_description
+    ) AS account_code_description,
+    CONCAT(
+        pos_pay.account_account_credit,
+        " - ",
+        account2.account_description
+    ) AS account_code_credit_description
+FROM
+    pos_pay
+INNER JOIN account account1 ON pos_pay.account_account_code = account1.account_code 
+INNER JOIN account account2 ON pos_pay.account_account_credit = account2.account_code 
+ORDER BY
+    pos_pay.account_account_code
+DESC
+    `, (error, result) => {
       if (!error) {
         return resolve(result);
       }

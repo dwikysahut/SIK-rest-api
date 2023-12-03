@@ -4,11 +4,15 @@ const helpers = require('../helpers');
 const { promiseHandler } = require('../middleware/promiseHandler');
 const posPayModel = require('../models/pos-pay');
 const { customErrorApi } = require('../helpers/CustomError');
+const accountCost = require('../models/account-cost');
 
 module.exports = {
-  getAllPosPay: promiseHandler(async (req, res, next) => {
-    const result = await posPayModel.getAllPosPay();
-    return helpers.response(res, 200, 'get All Pos Pay Successfully', result);
+  getAllPiutang: promiseHandler(async (req, res, next) => {
+    const query = '1-1020';
+    const result = await accountCost.getAllAccountCostByAccountCode(query);
+
+    const newResult = result.filter((item) => item.account_type == 2);
+    return helpers.response(res, 200, 'get All Piutang Successfully', newResult);
   }),
   postPosPay: promiseHandler(async (req, res, next) => {
     const errors = validationResult(req);

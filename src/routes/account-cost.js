@@ -6,6 +6,7 @@ const accountCostValidator = require('../validator/account-cost');
 
 Route
   .get('/', accountCostController.getAllAccountCost)
+  .get('/pos-pay', accountCostController.getAllAccountCostPay)
   .post('/code', accountCostController.getGenerateCodeAccountCost)
   .post('/', accountCostValidator, accountCostController.postAccountCost)
   .put('/:id', accountCostController.putAccountCost)

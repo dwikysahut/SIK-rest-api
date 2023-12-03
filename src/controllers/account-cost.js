@@ -10,6 +10,10 @@ module.exports = {
     const result = await accountCostModel.getAllAccountCost();
     return helpers.response(res, 200, 'get All Account Cost Successfully', result);
   }),
+  getAllAccountCostPay: promiseHandler(async (req, res, next) => {
+    const result = await accountCostModel.getAllAccountCostPosBayar(null);
+    return helpers.response(res, 200, 'get All Account Cost Pos Successfully', result);
+  }),
   getGenerateCodeAccountCost: promiseHandler(async (req, res, next) => {
     const { account_code, account_type } = req.body;
     // console.log(req.body);

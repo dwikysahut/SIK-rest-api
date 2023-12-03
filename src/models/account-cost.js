@@ -9,6 +9,22 @@ module.exports = {
       return reject(error);
     });
   }),
+  getAllAccountCostByAccountCode: (query) => new Promise((resolve, reject) => {
+    connection.query(`SELECT * FROM account where account_code LIKE'%${query}%' order by account_code ASC`, (error, result) => {
+      if (!error) {
+        return resolve(result);
+      }
+      return reject(error);
+    });
+  }),
+  getAllAccountCostPosBayar: (query) => new Promise((resolve, reject) => {
+    connection.query('SELECT * FROM account where account_category=1 order by account_code ASC', (error, result) => {
+      if (!error) {
+        return resolve(result);
+      }
+      return reject(error);
+    });
+  }),
   getAccountCostById: (id) => new Promise((resolve, reject) => {
     connection.query('SELECT * FROM account where account_id=?', id, (error, result) => {
       if (!error) {
