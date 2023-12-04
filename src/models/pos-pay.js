@@ -73,7 +73,7 @@ DESC
       return reject(error);
     });
   }),
-  deleteAccountCost: (id) => new Promise((resolve, reject) => {
+  deletePosPay: (id) => new Promise((resolve, reject) => {
     connection.query('DELETE from pos_pay where pos_pay_id=?', id, (error, result) => {
       if (!error) {
         const newData = {

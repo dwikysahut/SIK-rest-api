@@ -36,6 +36,7 @@ module.exports = {
       account_account_credit,
       pos_pay_name,
       pos_pay_description,
+      sekolah_id,
     } = req.body;
 
     const checkData = await posPayModel.getPosPayById(id);
@@ -47,7 +48,7 @@ module.exports = {
       account_account_credit,
       pos_pay_name,
       pos_pay_description,
-      sekolah_id: 0,
+      sekolah_id: sekolah_id || 0,
     };
     const result = await posPayModel.putPosPay(id, setData);
 
