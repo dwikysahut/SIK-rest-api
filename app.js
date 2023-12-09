@@ -10,7 +10,8 @@ const app = express();
 require('dotenv').config();
 
 const server = app.listen(process.env.PORT, process.env.HOST_LOCAL, () => {
-  console.log(`server running at http://${process.env.HOST_LOCAL}: ${server.address().port}`);
+
+  console.log('\x1b[33m%s\x1b[0m',`server running at http://${process.env.HOST_LOCAL}: ${server.address().port}`);
 });
 
 app.use(bodyParser.json());

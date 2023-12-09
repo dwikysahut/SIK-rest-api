@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllTahunAjaran: () => new Promise((resolve, reject) => {
-    connection.query('SELECT period.* from period', (error, result) => {
+    connection.query('SELECT period.* from period order by period_id ASC', (error, result) => {
       if (!error) {
         resolve(result);
       } else {

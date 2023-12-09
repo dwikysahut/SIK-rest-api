@@ -7,7 +7,7 @@ const connection = db.createConnection({
   user: 'root',
 
   port: process.env.DB_PORT,
-  password: '123',
+  // password: '123',
   database: process.env.DB_NAME,
 });
 

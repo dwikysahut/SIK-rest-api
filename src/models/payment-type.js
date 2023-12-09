@@ -2,7 +2,7 @@ const connection = require('../config/db.config');
 
 module.exports = {
   getAllPaymentType: () => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM payment order by account_code ASC', (error, result) => {
+    connection.query('SELECT * FROM view_payment', (error, result) => {
       if (!error) {
         return resolve(result);
       }
