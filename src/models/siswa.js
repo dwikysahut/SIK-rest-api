@@ -10,6 +10,15 @@ module.exports = {
       }
     });
   }),
+  getAllSiswaByClass: (id) => new Promise((resolve, reject) => {
+    connection.query('SELECT * FROM view_student WHERE class_class_id=?', id, (error, result) => {
+      if (!error) {
+        resolve(result);
+      } else {
+        reject(error);
+      }
+    });
+  }),
   getSiswaById: (id) => new Promise((resolve, reject) => {
     connection.query('SELECT * FROM view_student WHERE student_id=?', id, (error, result) => {
       if (!error) {

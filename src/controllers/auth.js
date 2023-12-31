@@ -13,7 +13,7 @@ module.exports = {
   login: promiseHandler(async (req, res, next) => {
     const { user_email, user_password } = req.body;
     const checkData = await authModel.getUserByUsername(user_email);
-    console.log(checkData);
+    console.log('login');
     if (!checkData) {
       return next(customErrorApi(401, 'Username atau Password Salah'));
     }

@@ -10,6 +10,7 @@ const accountCostRoutes = require('./account-cost');
 const posPayRoutes = require('./pos-pay');
 const paymentTypeRoutes = require('./payment-type');
 const piutangRoutes = require('./piutang');
+const paymentRateRoutes = require('./payment-rate');
 
 const Routes = express.Router();
 
@@ -24,5 +25,6 @@ Routes.use('/account-cost', accountCostRoutes);
 Routes.use('/pos-pay', posPayRoutes);
 Routes.use('/payment-type', paymentTypeRoutes);
 Routes.use('/piutang', piutangRoutes);
+Routes.use('/payment-rate', paymentRateRoutes);
 
 module.exports = Routes;
