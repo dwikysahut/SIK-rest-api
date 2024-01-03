@@ -1,8 +1,16 @@
 const connection = require('../config/db.config');
 
 module.exports = {
-  getAllDetailPaymentRateById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT detail_payment_rate.*, month.month_name from detail_payment_rate INNER JOIN month on detail_payment_rate.month_month_id=month.month_id where payment_rate_id=?', id, (err, result) => {
+  getAllDetailMonthlyPaymentRateById: (id) => new Promise((resolve, reject) => {
+    connection.query('SELECT detail_payment_rate_bulan.*, month.month_name from detail_payment_rate_bulan INNER JOIN month on detail_payment_rate_bulan.month_month_id=month.month_id where payment_rate_id=?', id, (err, result) => {
+      if (!err) {
+        resolve(result);
+      }
+      reject(err);
+    });
+  }),
+  getAllDetailFreePaymentRateById: (id) => new Promise((resolve, reject) => {
+    connection.query('SELECT detail_payment_rate_bebas.* from detail_payment_rate_bebas where payment_rate_id=?', id, (err, result) => {
       if (!err) {
         resolve(result);
       }

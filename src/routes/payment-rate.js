@@ -6,12 +6,12 @@ const paymentRateController = require('../controllers/payment-rate');
 
 Route
   .get('/:id', paymentRateController.getAllPaymentRateByPayment)
-  .get('/detail/:id', paymentRateController.getPaymentRateById)
+  .get('/detail/:id', paymentRateController.getAllDetailPaymentRateById)
   .post('/month/class', paymentRateController.postMonthlyPaymentRateByClass)
   .post('/month/student', paymentRateController.postMonthlyPaymentRateByStudent)
   .post('/free/class', paymentRateController.postFreePaymentRateByClass)
-  .post('/free/student', paymentRateController.postFreePaymentRateByStudent);
-// .put('/:id', paymentRateController.putPaymentRate)
-// .delete('/:id', paymentRateController.deletePaymentRate);
+  .post('/free/student', paymentRateController.postFreePaymentRateByStudent)
+  // .put('/:id', paymentRateController.putPaymentRate)
+  .delete('/:id', paymentRateController.deletePaymentRate);
 
 module.exports = Route;

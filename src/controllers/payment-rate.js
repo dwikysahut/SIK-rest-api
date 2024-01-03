@@ -8,6 +8,8 @@ const { promiseHandler } = require('../middleware/promiseHandler');
 const paymentRateModel = require('../models/payment-rate');
 const studentModel = require('../models/siswa');
 const detailPaymentRateModel = require('../models/detail-payment-rate');
+const { customErrorApi } = require('../helpers/CustomError');
+const { monthArray } = require('../utils/constant');
 
 module.exports = {
 
@@ -21,14 +23,32 @@ module.exports = {
     const result = await paymentRateModel.getAllPaymentRateByPayment(query);
     return helpers.response(res, 200, 'get All Payment Rate By Payment Successfully', result);
   }),
-  getPaymentRateById: promiseHandler(async (req, res, next) => {
+  // kerjakan
+  getAllDetailPaymentRateById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const result = await paymentRateModel.getPaymentRateById(id);
-    const detailResult = await detailPaymentRateModel.getAllDetailPaymentRateById(id);
-    const newResult = {
-      ...result,
-      months_payment: [...detailResult],
-    };
+    const { type = '' } = req.query;
+
+    let newResult;
+    if (type.includes('bulanan')) {
+      const detailResult = await detailPaymentRateModel.getAllDetailMonthlyPaymentRateById(id);
+      if (!detailResult) {
+        return next(customErrorApi(404, 'Data Not Found'));
+      }
+      newResult = {
+        ...detailResult,
+        months_payment: [...detailResult],
+      };
+    } else if (type.includes('bebas')) {
+      const detailResult = await detailPaymentRateModel.getAllDetailFreePaymentRateById(id);
+      if (!detailResult) {
+        return next(customErrorApi(404, 'Data Not Found'));
+      }
+      newResult = {
+        ...detailResult,
+        months_payment: [...detailResult].map((item, index) => (item.month_month_id == monthArray[index + 1] ? { ...item, [`month_${item.month_month_name.toLowerCase()}`]: { id: item.month_month_id, payment: item.payment_rate_bill } } : { ...item })),
+      };
+    }
+
     return helpers.response(res, 200, 'get Detail Payment Rate By ID Successfully', newResult);
   }),
   postMonthlyPaymentRateByClass: promiseHandler(async (req, res, next) => {
@@ -148,5 +168,15 @@ module.exports = {
 
     return helpers.response(res, 404, 'Tambah Tarif Tagihan Bebas Gagal', {});
   }),
+  deletePaymentRate: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    console.log(id);
 
+    const checkData = await paymentRateModel.getPaymentRateById(id);
+    if (!checkData) {
+      return next(customErrorApi(404, 'ID Not Found'));
+    }
+    const result = await paymentRateModel.deletePaymentRate(id);
+    return helpers.response(res, 200, 'Data Tarif Tagihan Berhasil Dihapus', result);
+  }),
 };
