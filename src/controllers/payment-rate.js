@@ -285,12 +285,53 @@ module.exports = {
       await detailPaymentRateModel.getAllDetailMonthlyPaymentRateByFilter(
         detailFilter
       );
-
+    if (getDetailPayments.length < 1) {
+      return next(customErrorApi(404, "Data Tidak Ditemukan"));
+    }
     const detailIdArr = getDetailPayments
       .map((item) => item.detail_payment_rate_id)
       .join(",");
 
-    await detailPaymentRateModel.putDetailPaymentRateByClass(
+    await detailPaymentRateModel.putMonthlyDetailPaymentRateByClass(
+      payment_new,
+      detailIdArr
+    );
+
+    // const result = await paymentRateModel.getPaymentRateById(id);
+    return helpers.response(res, 200, "Ubah Tarif Tagihan Berhasil", {
+      ...req.body,
+    });
+  }, true),
+  putFreePaymentRateByClass: promiseHandler(async (req, res, next) => {
+    const { payment_payment_id, payment_new, payment_old } = req.body;
+    const { id } = req.params;
+    const filter = `payment_payment_id=${payment_payment_id} AND class_class_id=${id}`;
+    const getPaymentRateId = await paymentRateModel.getPaymentRateByQuery(
+      filter
+    );
+    if (getPaymentRateId.length < 1) {
+      return next(customErrorApi(404, "Data Tidak Ditemukan"));
+    }
+
+    const paymentRateId = getPaymentRateId
+      .map((item) => item.payment_rate_id)
+      .join(",");
+
+    const detailFilter = `payment_rate_id IN (${paymentRateId}) AND payment_rate_bill=${payment_old}`;
+    const getDetailPayments =
+      await detailPaymentRateModel.getAllDetailFreePaymentRateByFilter(
+        detailFilter
+      );
+    console.log(detailFilter);
+
+    if (getDetailPayments.length < 1) {
+      return next(customErrorApi(404, "Data Tidak Ditemukan"));
+    }
+    const detailIdArr = getDetailPayments
+      .map((item) => item.detail_payment_rate_id)
+      .join(",");
+
+    await detailPaymentRateModel.putFreeDetailPaymentRateByClass(
       payment_new,
       detailIdArr
     );

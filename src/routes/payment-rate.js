@@ -6,6 +6,7 @@ const paymentRateController = require("../controllers/payment-rate");
 
 Route.get("/:id", paymentRateController.getAllPaymentRateByPayment)
   .post("/detail/:id", paymentRateController.getAllDetailPaymentRateById)
+
   .post("/month/class", paymentRateController.postMonthlyPaymentRateByClass)
   .post("/month/student", paymentRateController.postMonthlyPaymentRateByStudent)
   .post("/free/class", paymentRateController.postFreePaymentRateByClass)
@@ -16,6 +17,7 @@ Route.get("/:id", paymentRateController.getAllPaymentRateByPayment)
   )
   .put("/month/class/:id", paymentRateController.putMonthlyPaymentRateByClass)
   .put("/free/student/:id", paymentRateController.putFreePaymentRateByStudent)
+  .put("/free/class/:id", paymentRateController.putFreePaymentRateByClass)
   // .put('/month/:id', paymentRateController.putPaymentRate)
   .delete("/:id", paymentRateController.deletePaymentRate);
 

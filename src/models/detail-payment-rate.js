@@ -39,6 +39,18 @@ module.exports = {
         }
       );
     }),
+  getAllDetailFreePaymentRateByFilter: (filter) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT detail_payment_rate_bebas.* from detail_payment_rate_bebas where ${filter}`,
+        (err, result) => {
+          if (!err) {
+            resolve(result);
+          }
+          reject(err);
+        }
+      );
+    }),
   postDetailPaymentRate: (setData, query) =>
     new Promise((resolve, reject) => {
       connection.query(query, setData, (error, result) => {
@@ -66,10 +78,26 @@ module.exports = {
         }
       });
     }),
-  putDetailPaymentRateByClass: (payment, id) =>
+  putMonthlyDetailPaymentRateByClass: (payment, id) =>
     new Promise((resolve, reject) => {
       connection.query(
         `UPDATE detail_payment_rate_bulan SET payment_rate_bill=${payment} where detail_payment_rate_id IN (${id})`,
+        (error, result) => {
+          if (!error) {
+            const newData = {
+              pament_rate_bill: payment,
+            };
+            resolve(newData);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
+  putFreeDetailPaymentRateByClass: (payment, id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `UPDATE detail_payment_rate_bebas SET payment_rate_bill=${payment} where detail_payment_rate_id IN (${id})`,
         (error, result) => {
           if (!error) {
             const newData = {
