@@ -1,9 +1,9 @@
 const express = require("express");
 
 const Route = express.Router();
-const monthlyPaymentController = require("../controllers/monthly-payment");
+const paymentTransactionController = require("../controllers/payment-transaction");
 
-Route.get("/student/:id", monthlyPaymentController.getMonthlyPaymentByStudent);
+Route.get("/student/:id", paymentTransactionController.getPaymentByStudent);
 
 // .get('/status/:id', kelasController.getKelasByProdi)
 //   .post('/', siswaController.postSiswa)

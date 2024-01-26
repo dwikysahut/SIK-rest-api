@@ -15,4 +15,24 @@ module.exports = {
         }
       );
     }),
+
+  putMonthlyPayment: (id, setData) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        "UPDATE detail_payment_rate_bulan set ? WHERE detail_payment_rate_id=?",
+        [setData, id],
+        (error, result) => {
+          if (!error) {
+            const newData = {
+              detail_payment_rate_id: parseInt(id, 10),
+              ...result,
+              field: { id: parseInt(id, 10), ...setData },
+            };
+            resolve(newData);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
 };
