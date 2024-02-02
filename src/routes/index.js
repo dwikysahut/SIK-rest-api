@@ -12,6 +12,7 @@ const paymentTypeRoutes = require("./payment-type");
 const piutangRoutes = require("./piutang");
 const paymentRateRoutes = require("./payment-rate");
 const paymentTransactionRoutes = require("./payment-transaction");
+const whatsappRoutes = require("./whatsapp");
 
 const Routes = express.Router();
 
@@ -28,5 +29,6 @@ Routes.use("/payment-type", paymentTypeRoutes);
 Routes.use("/piutang", piutangRoutes);
 Routes.use("/payment-rate", paymentRateRoutes);
 Routes.use("/payment-transaction", paymentTransactionRoutes);
+Routes.use("/whatsapp", whatsappRoutes);
 
 module.exports = Routes;

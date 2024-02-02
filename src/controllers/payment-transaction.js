@@ -24,11 +24,29 @@ module.exports = {
     const resultMonthly = await monthlyPaymentModel.getMonthlyPaymentByStudent(
       id
     );
+    const paymentType =
+      await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
 
     const newResult = {
       ...resultSiswa,
       ...resultPayment,
-      monthly_payment: [...resultMonthly],
+      monthly_type: paymentType.map((item) => ({
+        ...item,
+        sisa_tagihan: resultMonthly
+          .filter(
+            (itemMonthly) =>
+              item.payment_rate_id === itemMonthly.payment_rate_id &&
+              itemMonthly.payment_rate_status == 0
+          )
+          .reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseInt(currentValue.payment_rate_bill, 10),
+            0
+          ),
+        monthly_payment: resultMonthly.filter(
+          (itemMonthly) => item.payment_rate_id === itemMonthly.payment_rate_id
+        ),
+      })),
     };
 
     return helpers.response(
@@ -47,10 +65,10 @@ module.exports = {
       payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
       payment_rate_bill: body.payment_rate_bill,
     };
-    const checkData = await deta;
-    if (!checkData) {
-      return next(customErrorApi(404, "ID Not Found"));
-    }
+    // const checkData = await ;
+    // if (!checkData) {
+    //   return next(customErrorApi(404, "ID Not Found"));
+    // }
     const result = await monthlyPaymentModel.putMonthlyPayment(id, newBody);
     const setDataLog = {
       description: `Input pembayaran bulanan siswa ${body.student_student_id}`,
@@ -64,6 +82,56 @@ module.exports = {
       result
     );
   }),
+  putMonthlyPaymentById: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const { student_student_id } = req.body;
+    const { token } = req;
+
+    const newBody = {
+      payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
+      payment_rate_status: 1,
+    };
+
+    const resultSiswa = await studentModel.getSiswaById(student_student_id);
+    const result = await monthlyPaymentModel.putMonthlyPaymentById(newBody, id);
+    const setDataLog = {
+      description: `${token.user_full_name} mengubah pembayaran bulanan siswa ${resultSiswa.student_full_name}`,
+      user_user_id: token.user_id ?? null,
+    };
+    console.log(token);
+    await logModel.postLog(setDataLog);
+    return helpers.response(
+      res,
+      200,
+      "Ubah Data Pembayaran bulanan siswa Berhasil",
+      result
+    );
+  }, true),
+  deleteMonthlyPaymentById: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const { student_student_id } = req.body;
+    const { token } = req;
+
+    const newBody = {
+      payment_rate_date_pay: null,
+      payment_rate_status: 0,
+    };
+
+    const resultSiswa = await studentModel.getSiswaById(student_student_id);
+    const result = await monthlyPaymentModel.putMonthlyPaymentById(newBody, id);
+    const setDataLog = {
+      description: `${token.user_full_name} menghapus pembayaran bulanan siswa ${resultSiswa.student_full_name}`,
+      user_user_id: token.user_id ?? null,
+    };
+    console.log(token);
+    await logModel.postLog(setDataLog);
+    return helpers.response(
+      res,
+      200,
+      "Delete Data Pembayaran bulanan siswa Berhasil",
+      result
+    );
+  }, true),
   //   putStatusSiswa: promiseHandler(async (req, res, next) => {
   //     const { id } = req.params;
   //     const { body } = req;

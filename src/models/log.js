@@ -21,9 +21,9 @@ module.exports = {
       connection.query("INSERT INTO log set ?", [setData], (error, result) => {
         if (!error) {
           const newData = {
-            id: parseInt(id, 10),
+            id: parseInt(result.insertId, 10),
             ...result,
-            field: { id: parseInt(id, 10), ...setData },
+            field: { id: parseInt(result.insertId, 10), ...setData },
           };
           resolve(newData);
         } else {
