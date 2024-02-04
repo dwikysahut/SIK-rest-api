@@ -18,7 +18,7 @@ module.exports = {
   getMonthlyPaymentTypeByStudent: (id) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT * FROM view_payment_monthly WHERE student_student_id=? AND payment_type='BULANAN'",
+        "SELECT * FROM view_payment_type WHERE student_student_id=? AND payment_type='BULANAN'",
         id,
         (error, result) => {
           if (!error) {

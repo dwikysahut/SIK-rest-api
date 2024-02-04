@@ -15,6 +15,16 @@ Route.get("/student/:id", paymentTransactionController.getPaymentByStudent)
     "/delete/:id",
     authentication,
     paymentTransactionController.deleteMonthlyPaymentById
+  )
+  .put(
+    "/discount/:id",
+    authentication,
+    paymentTransactionController.putFreePaymentDiscountById
+  )
+  .put(
+    "/pay/:id",
+    authentication,
+    paymentTransactionController.putFreePaymentById
   );
 
 // .get('/status/:id', kelasController.getKelasByProdi)

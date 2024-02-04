@@ -9,7 +9,7 @@ const alumniModel = require("../models/alumni");
 
 module.exports = {
   postMessage: promiseHandler(async (req, res, next) => {
-    const { message, phone_no } = req.body;
+    const { message, phones_no } = req.body;
     const key = "97465483a3ad95e13814f908d141bfefdfe04b0b63518751";
     const response = await axios.post(
       "http://116.203.191.58/api/send_message",
