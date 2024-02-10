@@ -46,6 +46,11 @@ module.exports = {
             (itemFree) =>
               item.payment_rate_id === itemFree.payment_rate_id &&
               itemFree.payment_rate_status == 0
+          )[0].payment_rate_discount -
+          resultFree.filter(
+            (itemFree) =>
+              item.payment_rate_id === itemFree.payment_rate_id &&
+              itemFree.payment_rate_status == 0
           )[0].payment_rate_total_pay,
         ...resultFree
           .filter(
@@ -118,6 +123,8 @@ module.exports = {
     const { id } = req.params;
     const { body } = req;
 
+    console.log(body);
+    console.log("inii");
     const newBody = {
       payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
       payment_rate_bill: body.payment_rate_bill,
@@ -141,12 +148,14 @@ module.exports = {
   }),
   putMonthlyPaymentById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { student_student_id } = req.body;
+    const { student_student_id, payment_rate_via } = req.body;
     const { token } = req;
+    console.log(req.body);
 
     const newBody = {
       payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
       payment_rate_status: 1,
+      payment_rate_via: parseInt(payment_rate_via, 10),
     };
 
     const resultSiswa = await studentModel.getSiswaById(student_student_id);
@@ -198,6 +207,7 @@ module.exports = {
       payment_rate_bebas_pay_bill,
       payment_rate_bebas_pay_desc,
       payment_rate_date_pay,
+      payment_rate_via,
     } = req.body;
     const { token } = req;
 
@@ -206,7 +216,10 @@ module.exports = {
       payment_rate_bebas_pay_number: "-",
       payment_rate_bebas_pay_desc,
       detail_payment_rate_id: id,
+      payment_rate_via: parseInt(payment_rate_via) || null,
     };
+    console.log("ini loh");
+    console.log(payment_rate_via);
     const postResult = await freePaymentModel.postDetailFreePayment(
       formBodyDetail
     );
@@ -257,6 +270,7 @@ module.exports = {
     const newBody = {
       payment_rate_date_pay: null,
       payment_rate_status: 0,
+      payment_rate_via: null,
     };
 
     const resultSiswa = await studentModel.getSiswaById(student_student_id);

@@ -11,16 +11,18 @@ module.exports = {
   postMessage: promiseHandler(async (req, res, next) => {
     const { message, phones_no } = req.body;
     const key = "97465483a3ad95e13814f908d141bfefdfe04b0b63518751";
-    const response = await axios.post(
-      "http://116.203.191.58/api/send_message",
-      {
-        phone_no: "082234632343",
-        key,
-        message: "halo mas yoga, ini tes",
-        skip_link: true,
-        deliveryFlag: true,
+    try {
+      for (let i = 0; i < phones_no.length; i++) {
+        await axios.post("http://116.203.191.58/api/send_message", {
+          phone_no: phones_no[i],
+          key,
+          message: message,
+          skip_link: true,
+          deliveryFlag: true,
+        });
       }
-    );
+    } catch (error) {}
+
     return helpers.response(
       res,
       200,

@@ -4,7 +4,7 @@ module.exports = {
   getMonthlyPaymentByStudent: (id) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT detail_payment_rate_bulan.*,month.month_name FROM detail_payment_rate_bulan INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id INNER JOIN month on month.month_id=detail_payment_rate_bulan.month_month_id WHERE payment_rate.student_student_id=? order by month_id",
+        "SELECT detail_payment_rate_bulan.*,account.account_description as payment_rate_via_name,month.month_name FROM detail_payment_rate_bulan INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id INNER JOIN month on month.month_id=detail_payment_rate_bulan.month_month_id LEFT JOIN account ON account.account_id=detail_payment_rate_bulan.payment_rate_via WHERE payment_rate.student_student_id=? order by month_id",
         id,
         (error, result) => {
           if (!error) {
