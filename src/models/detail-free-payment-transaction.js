@@ -14,6 +14,19 @@ module.exports = {
         }
       );
     }),
+  getAllDetailByRangePaymentId: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        "SELECT detail_payment_rate_bebas_pay.*,account.account_description as payment_rate_via_name FROM detail_payment_rate_bebas_pay LEFT JOIN account ON account.account_id=detail_payment_rate_bebas_pay.payment_rate_via where detail_payment_rate_id IN(?)",
+        id,
+        (err, result) => {
+          if (!err) {
+            resolve(result);
+          }
+          reject(err);
+        }
+      );
+    }),
   deleteDetailTransaction: (id) =>
     new Promise((resolve, reject) => {
       connection.query(

@@ -4,6 +4,7 @@ const { customErrorApi } = require("../helpers/CustomError");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const monthlyPaymentModel = require("../models/monthly-payment");
 const freePaymentModel = require("../models/free-payment");
+const detailFreePaymentModel = require("../models/detail-free-payment-transaction");
 const paymentTransactionModel = require("../models/payment-transaction");
 const studentModel = require("../models/siswa");
 const logModel = require("../models/log");
@@ -23,16 +24,24 @@ module.exports = {
         period_end: query.period_end,
       });
     const resultMonthly = await monthlyPaymentModel.getMonthlyPaymentByStudent(
-      id
+      id,
+      query.period_start,
+      query.period_end
     );
-    const resultFree = await freePaymentModel.getFreePaymentByStudent(id);
+    console.log("bulan nih");
+    console.log(resultMonthly);
+    const resultFree = await freePaymentModel.getFreePaymentByStudent(
+      id,
+      query.period_start,
+      query.period_end
+    );
 
     const monthlyPaymentType =
       await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
     const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(
       id
     );
-    console.log(resultFree);
+
     const freeType = {
       free_type: freePaymentType.map((item) => ({
         ...item,
@@ -41,17 +50,17 @@ module.exports = {
             (itemFree) =>
               item.payment_rate_id === itemFree.payment_rate_id &&
               itemFree.payment_rate_status == 0
-          )[0].payment_rate_bill -
+          )[0]?.payment_rate_bill -
           resultFree.filter(
             (itemFree) =>
               item.payment_rate_id === itemFree.payment_rate_id &&
               itemFree.payment_rate_status == 0
-          )[0].payment_rate_discount -
+          )[0]?.payment_rate_discount -
           resultFree.filter(
             (itemFree) =>
               item.payment_rate_id === itemFree.payment_rate_id &&
               itemFree.payment_rate_status == 0
-          )[0].payment_rate_total_pay,
+          )[0]?.payment_rate_total_pay,
         ...resultFree
           .filter(
             (itemFree) => item.payment_rate_id === itemFree.payment_rate_id
@@ -76,7 +85,7 @@ module.exports = {
               (itemFree) =>
                 item.payment_rate_id === itemFree.payment_rate_id &&
                 itemFree.payment_rate_status == 0
-            )[0].payment_rate_discount,
+            )[0]?.payment_rate_discount,
           10
         ),
       })),
@@ -114,7 +123,122 @@ module.exports = {
     return helpers.response(
       res,
       200,
-      "Get Pembayaran bulanan siswa berhasil",
+      "Get Pembayaran siswa berhasil",
+      newResult
+    );
+  }),
+  getHistoryPaymentByStudent: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const resultMonthly =
+      await monthlyPaymentModel.getHistoryMonthlyPaymentByStudent(id);
+    const resultFree = await freePaymentModel.getHistoryFreePaymentIdPayment(
+      id
+    );
+    const resultFreeids = resultFree
+      .map((item) => item.detail_payment_rate_id)
+      .join(",");
+    // const resultFreeDetail =
+    //   await detailFreePaymentModel.getAllDetailByRangePaymentId(resultFreeids);
+
+    const monthlyPaymentType =
+      await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
+    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(
+      id
+    );
+    console.log(resultFree);
+    const freeType = {
+      free_type: freePaymentType.map((item) => ({
+        ...item,
+        detail_payment: resultFree
+          .filter(
+            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id
+          )
+          .map((item) => ({
+            ...item,
+            payment_rate_bill: parseInt(item.payment_rate_bill),
+          })),
+      })),
+    };
+
+    const newResult = {
+      monthly_type: monthlyPaymentType.map((item) => ({
+        ...item,
+        monthly_payment: resultMonthly
+          .filter(
+            (itemMonthly) =>
+              item.payment_rate_id === itemMonthly.payment_rate_id
+          )
+          .map((item) => ({
+            ...item,
+            payment_rate_bill: parseInt(item.payment_rate_bill),
+          })),
+      })),
+      ...freeType,
+    };
+
+    return helpers.response(
+      res,
+      200,
+      "Get History Pembayaran siswa berhasil",
+      newResult
+    );
+  }),
+  getTagihanPaymentByStudent: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+
+    const resultMonthly =
+      await monthlyPaymentModel.getTagihanMonthlyPaymentByStudent(id);
+    const resultFree = await freePaymentModel.getTagihanFreePaymentIdPayment(
+      id
+    );
+
+    const monthlyPaymentType =
+      await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
+    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(
+      id
+    );
+    console.log(resultFree);
+    const freeType = {
+      free_type: freePaymentType.map((item) => ({
+        ...item,
+        detail_payment: resultFree
+          .filter(
+            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id
+          )
+          .map((item) => ({
+            ...item,
+            payment_rate_bill: parseInt(item.payment_rate_bill),
+          })),
+      })),
+    };
+    const total = [...resultFree, ...resultMonthly].reduce(
+      (accumulator, currentValue) =>
+        accumulator + parseInt(currentValue.payment_rate_bill, 10),
+      0
+    );
+
+    const newResult = {
+      monthly_type: monthlyPaymentType.map((item) => ({
+        ...item,
+        monthly_payment: resultMonthly
+          .filter(
+            (itemMonthly) =>
+              item.payment_rate_id === itemMonthly.payment_rate_id
+          )
+          .map((item) => ({
+            ...item,
+            payment_rate_bill: parseInt(item.payment_rate_bill),
+          })),
+      })),
+      ...freeType,
+      total_tagihan: total,
+    };
+
+    return helpers.response(
+      res,
+      200,
+      "Get Tagihan Pembayaran siswa berhasil",
       newResult
     );
   }),
@@ -148,14 +272,16 @@ module.exports = {
   }),
   putMonthlyPaymentById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { student_student_id, payment_rate_via } = req.body;
+    const { student_student_id, payment_rate_via, payment_rate_number_pay } =
+      req.body;
     const { token } = req;
     console.log(req.body);
 
     const newBody = {
       payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
       payment_rate_status: 1,
-      payment_rate_via: parseInt(payment_rate_via, 10),
+      payment_rate_via: parseInt(payment_rate_via, 10) || null,
+      payment_rate_number_pay,
     };
 
     const resultSiswa = await studentModel.getSiswaById(student_student_id);
@@ -208,6 +334,7 @@ module.exports = {
       payment_rate_bebas_pay_desc,
       payment_rate_date_pay,
       payment_rate_via,
+      payment_rate_bebas_pay_number,
     } = req.body;
     const { token } = req;
 
@@ -217,9 +344,9 @@ module.exports = {
       payment_rate_bebas_pay_desc,
       detail_payment_rate_id: id,
       payment_rate_via: parseInt(payment_rate_via) || null,
+      payment_rate_bebas_pay_number,
     };
-    console.log("ini loh");
-    console.log(payment_rate_via);
+
     const postResult = await freePaymentModel.postDetailFreePayment(
       formBodyDetail
     );
@@ -240,7 +367,7 @@ module.exports = {
       payment_rate_status:
         dataFreePaymentById.payment_rate_bill -
           dataFreePaymentById.payment_rate_discount -
-          total ==
+          total <=
         0
           ? 1
           : 0,

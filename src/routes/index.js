@@ -15,6 +15,7 @@ const paymentTransactionRoutes = require("./payment-transaction");
 const whatsappRoutes = require("./whatsapp");
 const detailFreePaymentRateRoutes = require("./detail-free-payment-transaction");
 const dataDashboardRoutes = require("./dashboard");
+const dokumenRoutes = require("./dokumen");
 
 const Routes = express.Router();
 
@@ -34,5 +35,6 @@ Routes.use("/payment-transaction", paymentTransactionRoutes);
 Routes.use("/whatsapp", whatsappRoutes);
 Routes.use("/detail-free-payment-rate", detailFreePaymentRateRoutes);
 Routes.use("/dashboard", dataDashboardRoutes);
+Routes.use("/dokumen", dokumenRoutes);
 
 module.exports = Routes;

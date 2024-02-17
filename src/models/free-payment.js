@@ -1,10 +1,10 @@
 const connection = require("../config/db.config");
 
 module.exports = {
-  getFreePaymentByStudent: (id) =>
+  getFreePaymentByStudent: (id, period_start = "", period_end = "") =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT detail_payment_rate_bebas.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id WHERE payment_rate.student_student_id=? ",
+        `SELECT detail_payment_rate_bebas.*,view_payment.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id INNER JOIN view_payment ON view_payment.payment_id=payment_rate.payment_payment_id  WHERE payment_rate.student_student_id=? AND period_start LIKE '%${period_start}%' AND period_end LIKE '%${period_end}%'`,
         id,
         (error, result) => {
           if (!error) {
@@ -42,6 +42,34 @@ module.exports = {
     new Promise((resolve, reject) => {
       connection.query(
         "SELECT * FROM detail_payment_rate_bebas_pay WHERE detail_payment_rate_id =?",
+        id,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getHistoryFreePaymentIdPayment: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        "SELECT detail_payment_rate_bebas.*,detail_payment_rate_bebas_pay.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id INNER JOIN detail_payment_rate_bebas_pay ON detail_payment_rate_bebas_pay.detail_payment_rate_id=detail_payment_rate_bebas.detail_payment_rate_id WHERE payment_rate.student_student_id=? ",
+        id,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getTagihanFreePaymentIdPayment: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        "SELECT detail_payment_rate_bebas.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id WHERE payment_rate.student_student_id=? ",
         id,
         (error, result) => {
           if (!error) {

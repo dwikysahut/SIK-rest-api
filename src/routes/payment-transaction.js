@@ -5,6 +5,14 @@ const paymentTransactionController = require("../controllers/payment-transaction
 const { authentication } = require("../middleware/authMiddleware");
 
 Route.get("/student/:id", paymentTransactionController.getPaymentByStudent)
+  .get(
+    "/student/history/:id",
+    paymentTransactionController.getHistoryPaymentByStudent
+  )
+  .get(
+    "/student/tagihan/:id",
+    paymentTransactionController.getTagihanPaymentByStudent
+  )
   .put(
     "/:id",
     authentication,

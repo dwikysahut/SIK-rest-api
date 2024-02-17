@@ -114,7 +114,7 @@ module.exports = {
       account_note: account_note || 0,
       account_category: account_category || 0,
       account_majors_id: account_majors_id || 0,
-      sekolah_id, // sekolah
+      sekolah_id: sekolah_id || 1, // sekolah
     };
     const result = await accountCostModel.postAccountCost(setData);
 
