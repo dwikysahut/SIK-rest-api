@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 module.exports = {
   response: (response, status, message, data = {}) => {
@@ -6,7 +6,6 @@ module.exports = {
       status: status || 200,
       message,
       data,
-
     };
     return response.status(result.status).json(result);
   },
@@ -26,7 +25,7 @@ module.exports = {
     };
     return transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
-        console.log('salah');
+        console.log("salah");
         console.log(err);
         return false;
       }
@@ -36,15 +35,28 @@ module.exports = {
     });
   },
   queryToString: (query) => {
-    let result = '';
+    let result = "";
     for (const key in query) {
-      if (query[key] == undefined || query[key] === '') {
+      if (query[key] == undefined || query[key] === "") {
         continue;
       }
-      result += `${key} LIKE'${query[key] || ''}' AND `;
+      result += `${key} LIKE'${query[key] || ""}' AND `;
     }
 
-    const filter = result.replace(/AND\s$/g, '');
+    const filter = result.replace(/AND\s$/g, "");
     return filter;
+  },
+
+  dateConvert: (data) => {
+    const date = new Date(data);
+    return `${date.getDate()} ${date.toLocaleString("id", {
+      month: "long",
+    })} ${date.getFullYear()}`;
+  },
+  rupiahConvert: (data) => {
+    return `${data.toLocaleString("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    })}`;
   },
 };
