@@ -15,17 +15,52 @@ const { monthArray } = require("../utils/constant");
 module.exports = {
   getAllPaymentRateByPayment: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { class_id: class_class_id, period } = req.query;
+    const {
+      class_id: class_class_id,
+      period,
+      unit_unit_id,
+      payment_type,
+    } = req.query;
+    console.log(req.query);
     const period_start = period.split("/")[0] ?? "";
     const period_end = period.split("/")[1] ?? "";
-    const query = `where (period_start like '%${period_start}%' and period_end like '%${period_end}%') and (class_class_id like '%${class_class_id}%') and payment_payment_id=${id}`;
+    const unitQuery = `AND unit_unit_id=${unit_unit_id}` ?? "";
+    const query = `where (period_start like '%${period_start}%' and period_end like '%${period_end}%') and (class_class_id like '%${class_class_id}%') and payment_payment_id=${id} ${unitQuery}`;
 
     const result = await paymentRateModel.getAllPaymentRateByPayment(query);
+    const resultIds = result.map((item) => item.payment_rate_id).join(",");
+
+    const detailQuery = `payment_rate_id IN(${resultIds})`;
+    let detailResult;
+    if (payment_type == "BULANAN") {
+      detailResult =
+        await detailPaymentRateModel.getAllDetailMonthlyPaymentRateByFilter(
+          detailQuery
+        );
+    } else {
+      detailResult =
+        await detailPaymentRateModel.getAllDetailFreePaymentRateByFilter(
+          detailQuery
+        );
+    }
+    const newResult = result.map((item) => ({
+      ...item,
+      nominal: detailResult
+        .filter(
+          (itemDetail) => itemDetail.payment_rate_id == item.payment_rate_id
+        )
+        .reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseInt(currentValue.payment_rate_bill || 0, 10),
+          0
+        ),
+    }));
+
     return helpers.response(
       res,
       200,
       "get All Payment Rate By Payment Successfully",
-      result
+      newResult
     );
   }),
   // kerjakan

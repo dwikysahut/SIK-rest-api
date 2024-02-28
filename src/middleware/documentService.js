@@ -35,7 +35,7 @@ module.exports = {
       await browser.close();
       return buffer;
     } catch (err) {
-      throw err;
+      console.log(err);
     }
   },
 

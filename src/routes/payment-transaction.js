@@ -9,6 +9,11 @@ Route.get("/student/:id", paymentTransactionController.getPaymentByStudent)
     "/student/history/:id",
     paymentTransactionController.getHistoryPaymentByStudent
   )
+  .get("/referensi-code", paymentTransactionController.getGenerateReferensiCode)
+  .get(
+    "/payment-not-submitted/:id",
+    paymentTransactionController.getPaymentNotSubmitted
+  )
   .get(
     "/student/tagihan/:id",
     paymentTransactionController.getTagihanPaymentByStudent
@@ -33,6 +38,11 @@ Route.get("/student/:id", paymentTransactionController.getPaymentByStudent)
     "/pay/:id",
     authentication,
     paymentTransactionController.putFreePaymentById
+  )
+  .post(
+    "/submit-pay",
+    authentication,
+    paymentTransactionController.putSubmitPaymentById
   );
 
 // .get('/status/:id', kelasController.getKelasByProdi)

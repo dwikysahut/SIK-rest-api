@@ -232,7 +232,7 @@ module.exports = {
           })),
       })),
       ...freeType,
-      total_tagihan: total,
+      total_tagihan: parseInt(total),
     };
 
     return helpers.response(
@@ -247,8 +247,6 @@ module.exports = {
     const { id } = req.params;
     const { body } = req;
 
-    console.log(body);
-    console.log("inii");
     const newBody = {
       payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
       payment_rate_bill: body.payment_rate_bill,
@@ -266,7 +264,7 @@ module.exports = {
     return helpers.response(
       res,
       200,
-      "Post Data Pembayaran bulanan siswa Berhasil",
+      "Input Data Pembayaran bulanan siswa Berhasil",
       result
     );
   }),
@@ -279,9 +277,8 @@ module.exports = {
 
     const newBody = {
       payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
-      payment_rate_status: 1,
-      payment_rate_via: parseInt(payment_rate_via, 10) || null,
       payment_rate_number_pay,
+      payment_rate_via: parseInt(payment_rate_via, 10) || null,
     };
 
     const resultSiswa = await studentModel.getSiswaById(student_student_id);
@@ -297,6 +294,79 @@ module.exports = {
       200,
       "Ubah Data Pembayaran bulanan siswa Berhasil",
       result
+    );
+  }, true),
+  putSubmitPaymentById: promiseHandler(async (req, res, next) => {
+    const { data_payment, student_id } = req.body;
+    const dataFree = data_payment
+      .filter((item) => item.payment_type == "BEBAS")
+      .map((item) => item.detail_payment_rate_id);
+    const dataMonthly = data_payment
+      .filter((item) => item.payment_type == "BULANAN")
+      .map((item) => item.detail_payment_rate_id);
+    const { token } = req;
+    const monthlyIds = "";
+    console.log(dataMonthly);
+
+    const newBodyMonthly = {
+      // payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
+      payment_rate_status: 1,
+      is_submit_payment: 1,
+    };
+
+    const newBodyDetailFree = {
+      is_submit_payment: 1,
+    };
+
+    // Using Promise.all to execute both async operations concurrently
+    await Promise.all([
+      paymentTransactionModel.putMonthlyPaymentSubmit(
+        newBodyMonthly,
+        dataMonthly
+      ),
+      paymentTransactionModel.putFreePaymentSubmit(newBodyDetailFree, dataFree),
+    ]);
+    const dataPaymentIdFromFree = data_payment
+      .filter((item) => item.payment_type == "BEBAS")
+      .map((item) => item.detail_payment_rate_id);
+
+    const resultDataPaymentWithTotal =
+      await freePaymentModel.getAllDetailFreePaymentTypeByIdPayment(
+        dataPaymentIdFromFree
+      );
+    for (let i = 0; i < resultDataPaymentWithTotal.length; i++) {
+      const total = resultDataPaymentWithTotal[i].total_bayar;
+      const dataFreePaymentById = await freePaymentModel.getFreePaymentById(
+        resultDataPaymentWithTotal[i].detail_payment_rate_id
+      );
+      const formBodyPayment = {
+        payment_rate_total_pay: total,
+        payment_rate_date_pay: payment_rate_date_pay,
+        payment_rate_status:
+          dataFreePaymentById.payment_rate_bill -
+            dataFreePaymentById.payment_rate_discount -
+            total <=
+          0
+            ? 1
+            : 0,
+      };
+      await freePaymentModel.putPaymentFreePayment(
+        formBodyPayment,
+        dataFreePaymentById.detail_payment_rate_id
+      );
+    }
+
+    const resultSiswa = await studentModel.getSiswaById(student_id);
+
+    const setDataLog = {
+      description: `${token.user_full_name} submit pembayaran siswa ${resultSiswa.student_full_name}`,
+      user_user_id: token.user_id ?? null,
+    };
+    await logModel.postLog(setDataLog);
+    return helpers.response(
+      res,
+      200,
+      "Submit Data Pembayaran bulanan siswa Berhasil"
     );
   }, true),
   putFreePaymentDiscountById: promiseHandler(async (req, res, next) => {
@@ -340,16 +410,14 @@ module.exports = {
 
     const formBodyDetail = {
       payment_rate_bebas_pay_bill,
-      payment_rate_bebas_pay_number: "-",
+      is_submit_payment: 0,
       payment_rate_bebas_pay_desc,
       detail_payment_rate_id: id,
       payment_rate_via: parseInt(payment_rate_via) || null,
       payment_rate_bebas_pay_number,
     };
 
-    const postResult = await freePaymentModel.postDetailFreePayment(
-      formBodyDetail
-    );
+    await freePaymentModel.postDetailFreePayment(formBodyDetail);
 
     const resultDetail =
       await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
@@ -398,6 +466,8 @@ module.exports = {
       payment_rate_date_pay: null,
       payment_rate_status: 0,
       payment_rate_via: null,
+      payment_rate_number_pay: null,
+      is_submit_payment: 0,
     };
 
     const resultSiswa = await studentModel.getSiswaById(student_student_id);
@@ -415,25 +485,90 @@ module.exports = {
       result
     );
   }, true),
-  //   putStatusSiswa: promiseHandler(async (req, res, next) => {
-  //     const { id } = req.params;
-  //     const { body } = req;
-  //     const newBody = {
-  //       ...body,
-  //       student_last_update: moment().format('YYYY-MM-DD  HH:mm:ss.000'),
-  //     };
+  getGenerateReferensiCode: promiseHandler(async (req, res, next) => {
+    const { ref_code, student_id } = req.query;
+    const code = ref_code;
+    //from monthly payment
+    const tableMonthly = "detail_payment_rate_bulan";
+    const queryMonthly = `WHERE payment_rate_number_pay LIKE '${code}%' AND payment_rate.student_student_id=${student_id} AND is_submit_payment=1 AND payment_rate_number_pay IS NOT NULL  order by payment_rate_number_pay DESC`;
+    const resultMonthly = await paymentTransactionModel.getReferensiCodeMonthly(
+      tableMonthly,
+      queryMonthly
+    );
+    //from monthly payment
+    const queryFree = `WHERE payment_rate_bebas_pay_number LIKE '${code}%' AND payment_rate.student_student_id=${student_id} AND is_submit_payment=1 AND payment_rate_bebas_pay_number IS NOT NULL order by payment_rate_bebas_pay_number DESC`;
+    const resultFree = await paymentTransactionModel.getReferensiCodeFree(
+      queryFree
+    );
+    const newFormatResultFree = resultFree.map((item) => ({
+      ...item,
+      payment_rate_number_pay: item.payment_rate_bebas_pay_number,
+    }));
 
-  //     const result = await siswaModel.putStatusSiswa(id, newBody);
-  //     return helpers.response(res, 200, 'Data Siswa Berhasil Diubah', result);
-  //   }),
-  //   deleteSiswa: promiseHandler(async (req, res, next) => {
-  //     const { id } = req.params;
+    const newResult =
+      [...newFormatResultFree, ...resultMonthly].length > 0
+        ? [...newFormatResultFree, ...resultMonthly].sort(
+            (a, b) => b.payment_rate_number_pay - a.payment_rate_number_pay
+          )[0].payment_rate_number_pay
+        : code + "00";
+    const twoLastCode = newResult.substring(newResult.length - 2);
+    const newIncrementCode =
+      newResult.substring(0, newResult.length - 2) +
+      (parseInt(twoLastCode, 10).toString().length < 2
+        ? `0${parseInt(twoLastCode, 10) + 1}`
+        : parseInt(twoLastCode, 10) + 1);
 
-  //     const checkData = await siswaModel.getSiswaById(id);
-  //     if (!checkData) {
-  //       return next(customErrorApi(404, 'ID Not Found'));
-  //     }
-  //     const result = await siswaModel.deletSiswa(id);
-  //     return helpers.response(res, 200, 'Data Siswa Berhasil Dihapus', result);
-  //   }),
+    return helpers.response(res, 200, "Get Referensi Code berhasil", {
+      code: newIncrementCode,
+      resu: [...resultFree, ...resultMonthly],
+    });
+  }),
+  getPaymentNotSubmitted: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    //from monthly payment
+    const resultMonthly =
+      await paymentTransactionModel.getMonthlyPaymentNotSubmitted(id);
+    //from monthly payment
+    const resultFree = await paymentTransactionModel.getFreePaymentNotSubmitted(
+      id
+    );
+    const newFormatResultFree = resultFree.map((item) => ({
+      ...item,
+      payment_rate_bill: parseInt(item.payment_rate_bebas_pay_bill),
+      payment_rate_number_pay: item.payment_rate_bebas_pay_number,
+    }));
+    const concatData = [...resultMonthly, ...newFormatResultFree].map(
+      (item) => ({
+        ...item,
+        payment_rate_bill: parseInt(item.payment_rate_bill),
+      })
+    );
+    const newResult = {
+      total: concatData.reduce(
+        (accumulator, currentValue) =>
+          accumulator + parseInt(currentValue.payment_rate_bill, 10),
+        0
+      ),
+      data_payment: concatData,
+    };
+
+    return helpers.response(
+      res,
+      200,
+      "Get Payment Not Submitted berhasil",
+      newResult
+    );
+  }),
+  submitAllPayment: promiseHandler(async (req, res, next) => {
+    const { data_payment } = req.body;
+    const dataFree = data_payment
+      .filter((item) => item.payment_type == "BEBAS")
+      .map((item) => item.detail_payment_rate_id);
+    const dataMonthly = data_payment
+      .filter((item) => item.payment_type == "BULANAN")
+      .map((item) => item.detail_payment_rate_id);
+    const setData = {};
+    paymentTransactionModel.putFreePaymentSubmit(setData, dataMonthly);
+    paymentTransactionModel.putMonthlyPaymentSubmit;
+  }),
 };

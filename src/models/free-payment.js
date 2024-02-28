@@ -52,6 +52,21 @@ module.exports = {
         }
       );
     }),
+  getAllDetailFreePaymentTypeByIdPayment: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT detail_payment_rate_bebas_pay.*, SUM(detail_payment_rate_bebas_pay.payment_rate_bebas_pay_bill) as 'total_bayar' FROM detail_payment_rate_bebas_pay WHERE detail_payment_rate_id IN (${id}) group BY detail_payment_rate_id `,
+
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+
   getHistoryFreePaymentIdPayment: (id) =>
     new Promise((resolve, reject) => {
       connection.query(

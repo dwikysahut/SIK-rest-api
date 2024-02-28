@@ -7,7 +7,12 @@ const { customErrorApi } = require("../helpers/CustomError");
 
 module.exports = {
   getAllPosPay: promiseHandler(async (req, res, next) => {
-    const result = await posPayModel.getAllPosPay();
+    const { unit_unit_id } = req.query;
+    const query =
+      unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `WHERE account1.unit_unit_id=${unit_unit_id}`;
+    const result = await posPayModel.getAllPosPay(query);
     return helpers.response(res, 200, "get All Pos Pay Successfully", result);
   }),
   postPosPay: promiseHandler(async (req, res, next) => {
@@ -22,14 +27,13 @@ module.exports = {
       account_account_credit,
       pos_pay_name,
       pos_pay_description,
-      sekolah_id,
+      unit_unit_id,
     } = req.body;
     const setData = {
       account_account_code,
       account_account_credit,
       pos_pay_name,
       pos_pay_description,
-      sekolah_id: sekolah_id || 1,
     };
     const result = await posPayModel.postPosPay(setData);
 
@@ -42,7 +46,6 @@ module.exports = {
       account_account_credit,
       pos_pay_name,
       pos_pay_description,
-      sekolah_id,
     } = req.body;
 
     const checkData = await posPayModel.getPosPayById(id);
@@ -54,7 +57,6 @@ module.exports = {
       account_account_credit,
       pos_pay_name,
       pos_pay_description,
-      sekolah_id: sekolah_id || 1,
     };
     const result = await posPayModel.putPosPay(id, setData);
 

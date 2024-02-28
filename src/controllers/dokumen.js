@@ -67,7 +67,6 @@ module.exports = {
   getDokumenRincianPembayaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
     const { period_start, period_end } = req.query;
-    console.log(req.query);
     const dataSiswa = await studentModel.getSiswaById(id);
     const resultMonthly = await monthlyPaymentModel.getMonthlyPaymentByStudent(
       id,
@@ -109,6 +108,9 @@ module.exports = {
         })),
       ,
     ];
+    console.log("dari sini");
+    console.log(resultFree);
+    console.log(resultMonthly);
     const allResult = {
       ...dataSiswa,
       period_start,
@@ -157,7 +159,6 @@ module.exports = {
       "../assets/pdfTemplate/rincian-pembayaran.html",
       allResult
     );
-    console.log(result);
     return helpers.response(
       res,
       200,

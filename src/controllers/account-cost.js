@@ -7,7 +7,14 @@ const { customErrorApi } = require("../helpers/CustomError");
 
 module.exports = {
   getAllAccountCost: promiseHandler(async (req, res, next) => {
-    const result = await accountCostModel.getAllAccountCost();
+    const { unit_unit_id } = req.query;
+    const query =
+      unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `WHERE unit_unit_id=${unit_unit_id}`;
+    console.log(unit_unit_id);
+
+    const result = await accountCostModel.getAllAccountCost(query);
     return helpers.response(
       res,
       200,
@@ -16,7 +23,15 @@ module.exports = {
     );
   }),
   getAllAccountCostPay: promiseHandler(async (req, res, next) => {
-    const result = await accountCostModel.getAllAccountCostPosBayar(null);
+    const { unit_unit_id } = req.query;
+    const query = `WHERE account_category=1 
+      ${
+        unit_unit_id == undefined || unit_unit_id == ""
+          ? ""
+          : `AND account.unit_unit_id=${unit_unit_id}`
+      }`;
+    const result = await accountCostModel.getAllAccountCostPosBayar(query);
+    console.log(result);
     return helpers.response(
       res,
       200,
@@ -25,7 +40,12 @@ module.exports = {
     );
   }),
   getAllAktivaAccountCost: promiseHandler(async (req, res, next) => {
-    const result = await accountCostModel.getAllAktivaAccountCost();
+    const { unit_unit_id } = req.query;
+    const query =
+      unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `AND unit_unit_id=${unit_unit_id}`;
+    const result = await accountCostModel.getAllAktivaAccountCost(query);
     return helpers.response(
       res,
       200,
@@ -34,8 +54,12 @@ module.exports = {
     );
   }),
   getGenerateCodeAccountCost: promiseHandler(async (req, res, next) => {
-    const { account_code, account_type } = req.body;
+    const { account_code, account_type, unit_unit_id } = req.body;
     // console.log(req.body);
+    const unitIdQuery =
+      unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `and unit_unit_id=${unit_unit_id}`;
     if (account_type < 3) {
       const query =
         account_type == 1
@@ -43,7 +67,10 @@ module.exports = {
           : `${account_code.slice(0, 5)}`;
       console.log(query);
 
-      const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
+      const checkData = await accountCostModel.getAccountCostByTypeAndId(
+        query,
+        unitIdQuery
+      );
       console.log(checkData);
 
       const checkDataFilter =
@@ -70,7 +97,10 @@ module.exports = {
     }
 
     const query = account_code;
-    const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
+    const checkData = await accountCostModel.getAccountCostByTypeAndId(
+      query,
+      unitIdQuery
+    );
 
     const lastNumber = checkData[checkData.length - 1].account_code;
     const newCode = lastNumber.split(".")[account_type - 2]
@@ -97,7 +127,7 @@ module.exports = {
       account_note,
       account_category,
       account_majors_id,
-      sekolah_id,
+      unit_unit_id,
     } = req.body;
     console.log(account_type);
     // const query = account_type == 1 ? `${code.slice(0, 4)}` : `${code.slice(0, 5)}`;
@@ -114,7 +144,7 @@ module.exports = {
       account_note: account_note || 0,
       account_category: account_category || 0,
       account_majors_id: account_majors_id || 0,
-      sekolah_id: sekolah_id || 1, // sekolah
+      unit_unit_id, // sekolah
     };
     const result = await accountCostModel.postAccountCost(setData);
 
@@ -127,7 +157,7 @@ module.exports = {
   }),
   putAccountCost: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { sekolah_id, account_description, account_category } = req.body;
+    const { unit_unit_id, account_description, account_category } = req.body;
 
     const checkData = await accountCostModel.getAccountCostById(id);
     if (!checkData) {
@@ -136,7 +166,7 @@ module.exports = {
     const setData = {
       account_category,
       account_description,
-      sekolah_id, // sekolah
+      unit_unit_id, // sekolah
     };
     const result = await accountCostModel.putAccountCost(id, setData);
 

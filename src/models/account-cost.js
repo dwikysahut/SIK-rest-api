@@ -1,10 +1,10 @@
 const connection = require("../config/db.config");
 
 module.exports = {
-  getAllAccountCost: () =>
+  getAllAccountCost: (unitIdQuery) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT * FROM account order by account_code ASC",
+        `SELECT * FROM account ${unitIdQuery} order by account_code ASC`,
         (error, result) => {
           if (!error) {
             return resolve(result);
@@ -13,10 +13,10 @@ module.exports = {
         }
       );
     }),
-  getAllAktivaAccountCost: () =>
+  getAllAktivaAccountCost: (query) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT * FROM account where account_type=2 AND account_code LIKE '1-101%' order by account_code ASC`,
+        `SELECT * FROM account where account_type=2 AND account_code LIKE '1-101%' ${query} order by account_code ASC`,
         (error, result) => {
           if (!error) {
             return resolve(result);
@@ -28,7 +28,7 @@ module.exports = {
   getAllAccountCostByAccountCode: (query) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT * FROM account where account_code LIKE'%${query}%' order by account_code ASC`,
+        `SELECT * FROM account ${query} order by account_code ASC`,
         (error, result) => {
           if (!error) {
             return resolve(result);
@@ -40,7 +40,7 @@ module.exports = {
   getAllAccountCostPosBayar: (query) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT * FROM account where account_category=1 order by account_code ASC",
+        `SELECT * FROM account ${query} order by account_code ASC`,
         (error, result) => {
           if (!error) {
             return resolve(result);
@@ -62,10 +62,10 @@ module.exports = {
         }
       );
     }),
-  getAccountCostByTypeAndId: (code) =>
+  getAccountCostByTypeAndId: (code, unitIdQuery) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT * FROM account where account_code LIKE'%${code}%' order by account_code ASC`,
+        `SELECT * FROM account where account_code LIKE'%${code}%' ${unitIdQuery} order by account_code ASC`,
         [],
         (error, result) => {
           if (!error) {
