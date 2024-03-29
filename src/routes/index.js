@@ -17,6 +17,8 @@ const detailFreePaymentRateRoutes = require("./detail-free-payment-transaction")
 const dataDashboardRoutes = require("./dashboard");
 const dokumenRoutes = require("./dokumen");
 const unitRoutes = require("./unit");
+const cashAccountRoutes = require("./cash-account");
+const kreditRoutes = require("./kredit");
 
 const Routes = express.Router();
 
@@ -38,5 +40,7 @@ Routes.use("/detail-free-payment-rate", detailFreePaymentRateRoutes);
 Routes.use("/dashboard", dataDashboardRoutes);
 Routes.use("/dokumen", dokumenRoutes);
 Routes.use("/unit", unitRoutes);
+Routes.use("/cash-account", cashAccountRoutes);
+Routes.use("/kredit", kreditRoutes);
 
 module.exports = Routes;

@@ -59,4 +59,72 @@ module.exports = {
       currency: "IDR",
     })}`;
   },
+  terbilang_rupiah: (nilai) => {
+    nilai = Math.floor(Math.abs(nilai));
+
+    var simpanNilaiBagi = 0;
+    var huruf = [
+      "",
+      "Satu",
+      "Dua",
+      "Tiga",
+      "Empat",
+      "Lima",
+      "Enam",
+      "Tujuh",
+      "Delapan",
+      "Sembilan",
+      "Sepuluh",
+      "Sebelas",
+    ];
+    var temp = "";
+
+    if (nilai < 12) {
+      temp = " " + huruf[nilai];
+    } else if (nilai < 20) {
+      temp = module.exports.terbilang_rupiah(Math.floor(nilai - 10)) + " Belas";
+    } else if (nilai < 100) {
+      simpanNilaiBagi = Math.floor(nilai / 10);
+      temp =
+        module.exports.terbilang_rupiah(simpanNilaiBagi) +
+        " Puluh" +
+        module.exports.terbilang_rupiah(nilai % 10);
+    } else if (nilai < 200) {
+      temp = " Seratus" + module.exports.terbilang_rupiah(nilai - 100);
+    } else if (nilai < 1000) {
+      simpanNilaiBagi = Math.floor(nilai / 100);
+      temp =
+        module.exports.terbilang_rupiah(simpanNilaiBagi) +
+        " Ratus" +
+        module.exports.terbilang_rupiah(nilai % 100);
+    } else if (nilai < 2000) {
+      temp = " Seribu" + module.exports.terbilang_rupiah(nilai - 1000);
+    } else if (nilai < 1000000) {
+      simpanNilaiBagi = Math.floor(nilai / 1000);
+      temp =
+        module.exports.terbilang_rupiah(simpanNilaiBagi) +
+        " Ribu" +
+        module.exports.terbilang_rupiah(nilai % 1000);
+    } else if (nilai < 1000000000) {
+      simpanNilaiBagi = Math.floor(nilai / 1000000);
+      temp =
+        module.exports.terbilang_rupiah(simpanNilaiBagi) +
+        " Juta" +
+        module.exports.terbilang_rupiah(nilai % 1000000);
+    } else if (nilai < 1000000000000) {
+      simpanNilaiBagi = Math.floor(nilai / 1000000000);
+      temp =
+        module.exports.terbilang_rupiah(simpanNilaiBagi) +
+        " Miliar" +
+        module.exports.terbilang_rupiah(nilai % 1000000000);
+    } else if (nilai < 1000000000000000) {
+      simpanNilaiBagi = Math.floor(nilai / 1000000000000);
+      temp =
+        module.exports.terbilang_rupiah(nilai / 1000000000000) +
+        " Triliun" +
+        module.exports.terbilang_rupiah(nilai % 1000000000000);
+    }
+
+    return `${temp}`;
+  },
 };

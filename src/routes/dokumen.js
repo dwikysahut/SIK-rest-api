@@ -7,6 +7,16 @@ const posPayValidator = require("../validator/pos-pay");
 Route.get(
   "/tagihan-pembayaran/:id",
   dokumenController.getDokumenTagihanPembayaran
-).get("/rincian-pembayaran/:id", dokumenController.getDokumenRincianPembayaran);
+)
+  .get("/rincian-pembayaran/:id", dokumenController.getDokumenRincianPembayaran)
+  .post("/kwitansi-pembayaran", dokumenController.getKwitansiPembayaran)
+  .get(
+    "/public/tagihan-pembayaran",
+    dokumenController.getPublicDokumenTagihanPembayaran
+  )
+  .get(
+    "/public/bukti-pembayaran",
+    dokumenController.getPublicDokumenBuktiPembayaran
+  );
 
 module.exports = Route;

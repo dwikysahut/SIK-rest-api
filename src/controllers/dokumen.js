@@ -3,6 +3,7 @@ const {
   pdfGenerate,
   generateRincianPembayaran,
   generateTagihanPembayaran,
+  generateKwitansiPembayaran,
 } = require("../middleware/documentService");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const monthlyPaymentModel = require("../models/monthly-payment");
@@ -11,6 +12,7 @@ const detailFreePaymentModel = require("../models/detail-free-payment-transactio
 const paymentTransactionModel = require("../models/payment-transaction");
 const tahunAjaranModel = require("../models/tahun-ajaran");
 const studentModel = require("../models/siswa");
+const { decryptData, encryptData } = require("../utils/encrypt");
 module.exports = {
   getDokumenTagihanPembayaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -48,12 +50,222 @@ module.exports = {
     const resultObject = {
       ...dataSiswa,
       ...currentTahunAjaran,
-      currentBilling,
-      previousBilling,
+      current_billing: {
+        total_bill: currentBilling.reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseInt(currentValue.payment_rate_bill, 10),
+          0
+        ),
+        bill: currentBilling,
+      },
+      previous_billing: {
+        total_bill: previousBilling.reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseInt(currentValue.payment_rate_bill, 10),
+          0
+        ),
+        bill: previousBilling,
+      },
     };
 
     const result = await generateTagihanPembayaran(
       "../assets/pdfTemplate/tagihan-pembayaran.html",
+      resultObject
+    );
+    console.log(result);
+    return helpers.response(
+      res,
+      200,
+      "GET dokumen tagihan pembayaran berhasil",
+      result
+    );
+  }),
+  getPublicDokumenTagihanPembayaran: promiseHandler(async (req, res, next) => {
+    const paramsData = {
+      iv: req.query.iv,
+      encryptedData: req.query.encryptedData,
+    };
+    console.log(paramsData);
+    const decryptedData = await decryptData(paramsData);
+    const id = decryptedData;
+    console.log(id);
+    const dataSiswa = await studentModel.getSiswaById(id);
+    const resultMonthly = await monthlyPaymentModel.getMonthlyPaymentByStudent(
+      id
+    );
+    const resultTahunAjaran = await tahunAjaranModel.getAllTahunAjaran();
+    const currentTahunAjaran = resultTahunAjaran.filter(
+      (item) => item.period_status == 1
+    )[0];
+    const resultFree = await freePaymentModel.getFreePaymentByStudent(id);
+    const allBilling = [
+      ...resultMonthly.filter((item) => item.payment_rate_status == 0),
+      ...resultFree
+        .filter((item) => item.payment_rate_status == 0)
+        .map((item) => ({
+          ...item,
+          payment_rate_bill:
+            item.payment_rate_bill -
+            item.payment_rate_discount -
+            item.payment_rate_total_pay,
+        })),
+    ];
+    const currentBilling = allBilling.filter(
+      (item) =>
+        item.period_start == currentTahunAjaran.period_start &&
+        item.period_end == currentTahunAjaran.period_end
+    );
+    const previousBilling = allBilling.filter(
+      (item) =>
+        item.period_start < currentTahunAjaran.period_start &&
+        item.period_end < currentTahunAjaran.period_end
+    );
+    const resultObject = {
+      ...dataSiswa,
+      ...currentTahunAjaran,
+      current_billing: {
+        total_bill: currentBilling.reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseInt(currentValue.payment_rate_bill, 10),
+          0
+        ),
+        bill: currentBilling,
+      },
+      previous_billing: {
+        total_bill: previousBilling.reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseInt(currentValue.payment_rate_bill, 10),
+          0
+        ),
+        bill: previousBilling,
+      },
+    };
+
+    const result = await generateTagihanPembayaran(
+      "../assets/pdfTemplate/tagihan-pembayaran.html",
+      resultObject
+    );
+    console.log(result);
+    return helpers.response(
+      res,
+      200,
+      "GET dokumen tagihan pembayaran berhasil",
+      result
+    );
+  }),
+
+  getKwitansiPembayaran: promiseHandler(async (req, res, next) => {
+    const { student_id, no_referensi, period_start, period_end } = req.body;
+
+    const dataSiswa = await studentModel.getSiswaById(student_id);
+
+    const resultFreePayment =
+      await freePaymentModel.getDetailFreePaymentTypeByReference(no_referensi);
+    const resultMonthlPayment =
+      await monthlyPaymentModel.getMonthlyPaymentByReferenceNumber(
+        student_id,
+        no_referensi
+      );
+    ///lanjut sini
+    const newFormatResultFree = resultFreePayment.map((item) => ({
+      ...item,
+      payment_rate_number_pay: item.payment_rate_bebas_pay_number,
+    }));
+
+    const allResult = [...resultMonthlPayment, ...newFormatResultFree];
+
+    // const allResult = [...resultMonthly, ...newFormatResultFree].filter(
+    //   (item, index, arr) =>
+    //     index ===
+    //     arr.findIndex(
+    //       (t) => item.payment_rate_number_pay == t.payment_rate_number_pay
+    //     )
+    // );
+    // return helpers.response(res, 200, "Sukses", allResult);
+    const resultObject = {
+      ...dataSiswa,
+      tahun_ajaran: `${period_start}/${period_end}`,
+      payment: [...allResult],
+      no_ref: no_referensi,
+      total: allResult.reduce(
+        (accumulator, currentValue) =>
+          accumulator +
+          parseInt(
+            currentValue.payment_rate_bebas_pay_bill
+              ? currentValue.payment_rate_bebas_pay_bill
+              : currentValue.payment_rate_bill,
+            10
+          ),
+        0
+      ),
+    };
+
+    const result = await generateKwitansiPembayaran(
+      "../assets/pdfTemplate/dokumen-kwitansi.html",
+      resultObject
+    );
+    console.log(result);
+    return helpers.response(
+      res,
+      200,
+      "GET dokumen tagihan pembayaran berhasil",
+      result
+    );
+  }),
+  getPublicDokumenBuktiPembayaran: promiseHandler(async (req, res, next) => {
+    const paramsData = {
+      iv: req.query.iv,
+      encryptedData: req.query.encryptedData,
+    };
+    const decryptedData = await decryptData(paramsData);
+    const { student_id, no_referensi, period_start, period_end } =
+      JSON.parse(decryptedData);
+    console.log(decryptedData);
+    const dataSiswa = await studentModel.getSiswaById(student_id);
+
+    const resultFreePayment =
+      await freePaymentModel.getDetailFreePaymentTypeByReference(no_referensi);
+    const resultMonthlPayment =
+      await monthlyPaymentModel.getMonthlyPaymentByReferenceNumber(
+        student_id,
+        no_referensi
+      );
+    ///lanjut sini
+    const newFormatResultFree = resultFreePayment.map((item) => ({
+      ...item,
+      payment_rate_number_pay: item.payment_rate_bebas_pay_number,
+    }));
+
+    const allResult = [...resultMonthlPayment, ...newFormatResultFree];
+
+    // const allResult = [...resultMonthly, ...newFormatResultFree].filter(
+    //   (item, index, arr) =>
+    //     index ===
+    //     arr.findIndex(
+    //       (t) => item.payment_rate_number_pay == t.payment_rate_number_pay
+    //     )
+    // );
+    // return helpers.response(res, 200, "Sukses", allResult);
+    const resultObject = {
+      ...dataSiswa,
+      tahun_ajaran: `${period_start}/${period_end}`,
+      payment: [...allResult],
+      no_ref: no_referensi,
+      total: allResult.reduce(
+        (accumulator, currentValue) =>
+          accumulator +
+          parseInt(
+            currentValue.payment_rate_bebas_pay_bill
+              ? currentValue.payment_rate_bebas_pay_bill
+              : currentValue.payment_rate_bill,
+            10
+          ),
+        0
+      ),
+    };
+
+    const result = await generateKwitansiPembayaran(
+      "../assets/pdfTemplate/dokumen-kwitansi.html",
       resultObject
     );
     console.log(result);

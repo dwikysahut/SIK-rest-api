@@ -9,6 +9,8 @@ const paymentTransactionModel = require("../models/payment-transaction");
 const studentModel = require("../models/siswa");
 const logModel = require("../models/log");
 const log = require("../models/log");
+const axios = require("axios");
+const { encryptData } = require("../utils/encrypt");
 
 module.exports = {
   getPaymentByStudent: promiseHandler(async (req, res, next) => {
@@ -212,6 +214,7 @@ module.exports = {
           })),
       })),
     };
+
     const total = [...resultFree, ...resultMonthly].reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.payment_rate_bill, 10),
@@ -240,6 +243,64 @@ module.exports = {
       200,
       "Get Tagihan Pembayaran siswa berhasil",
       newResult
+    );
+  }),
+  getTagihanAllStudent: promiseHandler(async (req, res, next) => {
+    const { class_id, period_id, unit_id } = req.query;
+    console.log(class_id);
+    console.log(period_id);
+    console.log(unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudent(
+        unit_id || "",
+        class_id || "",
+        period_id || ""
+      );
+    const resultFree = await freePaymentModel.getTagihanFreePaymentAllStudent(
+      unit_id || "",
+      class_id || "",
+      period_id || ""
+    );
+    console.log(resultMonthly);
+    const newResult = [...resultMonthly, ...resultFree];
+    return helpers.response(
+      res,
+      200,
+      "Get All Tagihan siswa berhasil",
+      newResult
+    );
+  }),
+
+  getPaymentReferenceNumberByStudent: promiseHandler(async (req, res, next) => {
+    const { id, payment_date } = req.body;
+    console.log(payment_date);
+    const resultMonthly =
+      await monthlyPaymentModel.getMonthlyPaymentTransactionNumber(
+        id,
+        payment_date
+      );
+    const resultFree = await freePaymentModel.getFreePaymentTransactionNumber(
+      id,
+      payment_date
+    );
+    const newFormatResultFree = resultFree.map((item) => ({
+      ...item,
+      payment_rate_number_pay: item.payment_rate_bebas_pay_number,
+    }));
+    //mengubah array jadi set dan disimpan di array lagi. tujuaannya untuk menghilangkan duplicate
+    const allResult = [...resultMonthly, ...newFormatResultFree].filter(
+      (item, index, arr) =>
+        index ===
+        arr.findIndex(
+          (t) => item.payment_rate_number_pay == t.payment_rate_number_pay
+        )
+    );
+
+    return helpers.response(
+      res,
+      200,
+      "Get Data Referensi Pembayaran siswa berhasil",
+      allResult
     );
   }),
 
@@ -297,7 +358,8 @@ module.exports = {
     );
   }, true),
   putSubmitPaymentById: promiseHandler(async (req, res, next) => {
-    const { data_payment, student_id } = req.body;
+    const { data_payment, student_id, total, period_start, period_end } =
+      req.body;
     const dataFree = data_payment
       .filter((item) => item.payment_type == "BEBAS")
       .map((item) => item.detail_payment_rate_id);
@@ -319,13 +381,30 @@ module.exports = {
     };
 
     // Using Promise.all to execute both async operations concurrently
-    await Promise.all([
-      paymentTransactionModel.putMonthlyPaymentSubmit(
-        newBodyMonthly,
-        dataMonthly
-      ),
-      paymentTransactionModel.putFreePaymentSubmit(newBodyDetailFree, dataFree),
-    ]);
+    if (dataFree.length > 0 && dataMonthly.length > 0) {
+      await Promise.all([
+        paymentTransactionModel.putMonthlyPaymentSubmit(
+          newBodyMonthly,
+          dataMonthly
+        ),
+        paymentTransactionModel.putFreePaymentSubmit(
+          newBodyDetailFree,
+          dataFree
+        ),
+      ]);
+    } else {
+      if (dataMonthly.length) {
+        await paymentTransactionModel.putMonthlyPaymentSubmit(
+          newBodyMonthly,
+          dataMonthly
+        );
+      } else if (dataFree.length) {
+        await paymentTransactionModel.putFreePaymentSubmit(
+          newBodyDetailFree,
+          dataFree
+        );
+      }
+    }
     const dataPaymentIdFromFree = data_payment
       .filter((item) => item.payment_type == "BEBAS")
       .map((item) => item.detail_payment_rate_id);
@@ -363,11 +442,45 @@ module.exports = {
       user_user_id: token.user_id ?? null,
     };
     await logModel.postLog(setDataLog);
-    return helpers.response(
-      res,
-      200,
-      "Submit Data Pembayaran bulanan siswa Berhasil"
+    const encData = encryptData(
+      JSON.stringify({
+        student_id: student_id.toString(),
+        no_referensi: data_payment[0].payment_rate_number_pay,
+        period_start: period_start,
+        period_end: period_end,
+      })
     );
+
+    await axios.post("http://116.203.191.58/api/async_send_message", {
+      phone_no: `+62${resultSiswa.student_parent_phone.substring(1)}`,
+      key: process.env.WOOWA_KEY,
+      skip_link: false,
+      flag_retry: "on",
+      pendingTime: 3,
+      message: `Terima kasih
+Pembayaran STIKes Pelita Ilmu Depok atas : 
+        
+      
+Nama   :  ${resultSiswa.student_full_name}
+NIS    :  ${resultSiswa.student_nis}
+Kelas  :  ${resultSiswa.class_class_name}
+      
+
+telah kami terima Tanggal ${moment()
+        .locale("id")
+        .format("DD MMMM YYYY")} sejumlah ${helpers.rupiahConvert(total)}
+
+      Referensi ID : ${data_payment[0].payment_rate_number_pay}
+
+Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
+        encData.iv
+      }&encryptedData=${encData.encryptedData}
+
+*) Silahkan simpan nomor ini jika link tidak aktif.
+       `,
+      deliveryFlag: true,
+    });
+    return helpers.response(res, 200, "Submit Data Pembayaran  siswa Berhasil");
   }, true),
   putFreePaymentDiscountById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -559,16 +672,16 @@ module.exports = {
       newResult
     );
   }),
-  submitAllPayment: promiseHandler(async (req, res, next) => {
-    const { data_payment } = req.body;
-    const dataFree = data_payment
-      .filter((item) => item.payment_type == "BEBAS")
-      .map((item) => item.detail_payment_rate_id);
-    const dataMonthly = data_payment
-      .filter((item) => item.payment_type == "BULANAN")
-      .map((item) => item.detail_payment_rate_id);
-    const setData = {};
-    paymentTransactionModel.putFreePaymentSubmit(setData, dataMonthly);
-    paymentTransactionModel.putMonthlyPaymentSubmit;
-  }),
+  // submitAllPayment: promiseHandler(async (req, res, next) => {
+  //   const { data_payment } = req.body;
+  //   const dataFree = data_payment
+  //     .filter((item) => item.payment_type == "BEBAS")
+  //     .map((item) => item.detail_payment_rate_id);
+  //   const dataMonthly = data_payment
+  //     .filter((item) => item.payment_type == "BULANAN")
+  //     .map((item) => item.detail_payment_rate_id);
+  //   const setData = {};
+  //   paymentTransactionModel.putFreePaymentSubmit(setData, dataMonthly);
+  //   paymentTransactionModel.putMonthlyPaymentSubmit;
+  // }),
 };

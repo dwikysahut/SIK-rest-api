@@ -3,6 +3,7 @@ const { validationResult } = require("express-validator");
 const helpers = require("../helpers");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const accountCostModel = require("../models/account-cost");
+const cashAccountModel = require("../models/cash-account");
 const { customErrorApi } = require("../helpers/CustomError");
 
 module.exports = {
@@ -22,6 +23,7 @@ module.exports = {
       result
     );
   }),
+  //get data akun yang typenya pembayaran
   getAllAccountCostPay: promiseHandler(async (req, res, next) => {
     const { unit_unit_id } = req.query;
     const query = `WHERE account_category=1 
@@ -36,6 +38,24 @@ module.exports = {
       res,
       200,
       "get All Account Cost Pos Successfully",
+      result
+    );
+  }),
+  //get all account dengan awalan 5 /biaya
+  getAllAccountJenisBiaya: promiseHandler(async (req, res, next) => {
+    const { unit_unit_id } = req.query;
+    const query = `WHERE account_code LIKE '5-50%' AND account_type=2 
+      ${
+        unit_unit_id == undefined || unit_unit_id == ""
+          ? ""
+          : `AND account.unit_unit_id=${unit_unit_id}`
+      }`;
+    const result = await accountCostModel.getAllAccountCost(query);
+    console.log(result);
+    return helpers.response(
+      res,
+      200,
+      "get All Account Jenis Biaya Successfully",
       result
     );
   }),
@@ -129,7 +149,6 @@ module.exports = {
       account_majors_id,
       unit_unit_id,
     } = req.body;
-    console.log(account_type);
     // const query = account_type == 1 ? `${code.slice(0, 4)}` : `${code.slice(0, 5)}`;
 
     // const checkData = await accountCostModel.getAccountCostByTypeAndId(query);
@@ -147,6 +166,10 @@ module.exports = {
       unit_unit_id, // sekolah
     };
     const result = await accountCostModel.postAccountCost(setData);
+    await cashAccountModel.postCashAccount({
+      account_account_id: result.account_id,
+      unit_unit_id,
+    });
 
     return helpers.response(
       res,
@@ -175,7 +198,7 @@ module.exports = {
   deleteAccountCost: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
 
-    const checkData = await accountCostModel.getAccountCostByTypeAndId(id);
+    const checkData = await accountCostModel.getAccountCostById(id);
     if (!checkData) {
       return next(customErrorApi(404, "ID Not Found"));
     }

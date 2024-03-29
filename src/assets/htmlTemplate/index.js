@@ -11,7 +11,7 @@ module.exports = {
               ? `${datas.period_start}`
               : `${datas.period_end}`
           })`
-        : "bebas"
+        : " (bebas)"
     }</td>
         <td>${
           data.payment_rate_date_pay
@@ -32,10 +32,32 @@ module.exports = {
     </tr>`;
   },
   tableTagihanPembayaran: (data, index, datas) => `  <tr>
+  <td>${index + 1}</td>
   <td>${data.pos_pay_name} T.A ${datas.period_start}/${datas.period_end}${
-    data.month_name ? `(${data.month_name})` : "bebas"
+    data.month_name ? `(${data.month_name})` : " (bebas)"
   }</td>
-  <td>${data.payment_rate_bill}</td>
+  <td>${rupiahConvert(parseInt(data.payment_rate_bill, 10))}</td>
+
+</tr>`,
+  tableKwitansiPembayaran: (data, index, datas) => `  <tr>
+  <td>${index + 1}</td>
+  <td>${data.pos_pay_name} T.A ${data.period_start}/${data.period_end}${
+    data.month_name ? `(${data.month_name})` : " (bebas)"
+  }</td>
+  <td>${rupiahConvert(
+    parseInt(
+      (data.month_month_id
+        ? data.payment_rate_bill
+        : data.payment_rate_bill - data.payment_rate_discount) ?? 0,
+      10
+    )
+  )}</td>
+  <td>${rupiahConvert(
+    parseInt(
+      (data.payment_rate_bebas_pay_bill || data.payment_rate_bill) ?? 0,
+      10
+    )
+  )}</td>
 
 </tr>`,
 };

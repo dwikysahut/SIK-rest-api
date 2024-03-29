@@ -24,12 +24,12 @@ module.exports = {
     if (!passwordCompare) {
       return next(customErrorApi(401, "Username atau Password Salah"));
     }
-    console.log("this");
     delete checkData.user_password;
     delete checkData.created_at;
     delete checkData.updated_at;
-    checkData.user_id;
+    // checkData.user_id;
     const token = jwt.sign({ ...checkData }, process.env.SECRET_KEY);
+    console.log(checkData);
     const refreshToken = jwt.sign(
       { checkData },
       process.env.REFRESH_TOKEN_SECRET_KEY
@@ -44,13 +44,22 @@ module.exports = {
     return helpers.response(res, 200, "Login Berhasil", result);
   }),
   checkMe: promiseHandler(async (req, res, next) => {
-    const { token } = req;
+    const { token } = req.body;
     console.log(token);
-    const result = await authModel.getUserByUsername(token.user_email);
+    const resultToken = jwt.verify(token, process.env.SECRET_KEY);
+    console.log(resultToken);
+    const result = await authModel.getUserByUsername(resultToken.user_email);
     if (!result) {
       return next(customErrorApi(404, "Data tidak ditemukan"));
     }
-    return helpers.response(res, 200, "Get Data User Berhasil", { ...result });
+    delete result.user_password;
+    delete result.created_at;
+    delete result.updated_at;
+
+    return helpers.response(res, 200, "Get Data User Berhasil", {
+      ...result,
+      token,
+    });
   }),
   register: promiseHandler(async (req, res, next) => {
     const { user_role_role_id, user_email, user_full_name, user_password } =

@@ -11,6 +11,14 @@ Route.get("/student/:id", paymentTransactionController.getPaymentByStudent)
   )
   .get("/referensi-code", paymentTransactionController.getGenerateReferensiCode)
   .get(
+    "/all-tagihan-student",
+    paymentTransactionController.getTagihanAllStudent
+  )
+  .post(
+    "/all-referensi-code",
+    paymentTransactionController.getPaymentReferenceNumberByStudent
+  )
+  .get(
     "/payment-not-submitted/:id",
     paymentTransactionController.getPaymentNotSubmitted
   )

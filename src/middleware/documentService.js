@@ -2,9 +2,13 @@ const puppeteer = require("puppeteer");
 
 const path = require("path");
 const fs = require("fs");
-const { dateConvert, rupiahConvert } = require("../helpers");
+const { dateConvert, rupiahConvert, terbilang_rupiah } = require("../helpers");
 const moment = require("moment");
-const { tableHtmlRincianPembayaran } = require("../assets/htmlTemplate");
+const {
+  tableHtmlRincianPembayaran,
+  tableTagihanPembayaran,
+  tableKwitansiPembayaran,
+} = require("../assets/htmlTemplate");
 module.exports = {
   pdfGenerate: async function (htmlFile, opts = {}) {
     try {
@@ -68,17 +72,75 @@ module.exports = {
     const buffer = await module.exports.pdfGenerate(html);
     return buffer;
   },
-  generateTagihanPembayaran: async (htmlFileUrl, data) => {
+  generateTagihanPembayaran: async (htmlFileUrl, datas) => {
     let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
-    html = html.replace("VALUE_NIS_SISWA", data.student_full_name);
-    html = html.replace("VALUE_NAMA_SISWA", data.period_name);
-    html = html.replace("VALUE_KELAS_SISWA", data.class_name);
+    html = html.replace("VALUE_NIS_SISWA", datas.student_nis);
+    html = html.replace("VALUE_NAMA_SISWA", datas.student_full_name);
+    html = html.replace("VALUE_KELAS_SISWA", datas.class_class_name);
     html = html.replace(
       "VALUE_TAHUN_AJARAN",
-      `${data.period_start}${data.period_end}`
+      `${datas.period_start}/${datas.period_end}`
+    );
+    let tableRows = "";
+    datas.current_billing.bill.forEach((data, index) => {
+      tableRows += tableTagihanPembayaran(data, index, datas);
+    });
+    html = html.replace("VALUE_TABEL_TAHUN_AJARAN_SEKARANG", tableRows);
+    html = html.replace(
+      "VALUE_TOTAL_TAGIHAN_SISWA_SEKARANG",
+      rupiahConvert(datas.current_billing.total_bill)
+    );
+    let tableRowsLalu = "";
+    datas.previous_billing.bill.forEach((data, index) => {
+      tableRowsLalu += tableTagihanPembayaran(data, index, datas);
+    });
+    html = html.replace("VALUE_TABEL_TAHUN_AJARAN_LALU", tableRowsLalu);
+    html = html.replace(
+      "VALUE_TOTAL_TAGIHAN_SISWA_LALU",
+      rupiahConvert(datas.previous_billing.total_bill)
     );
 
-    html = html.replace("VALUE_TOTAL", data.student_nis);
+    html = html.replace(
+      "VALUE_TANGGAL_DOKUMEN",
+      `Depok, ${moment().locale("id").format("DD MMMM YYYY")}`
+    );
+    html = html.replace("VALUE_NIP", "");
+
+    const buffer = await module.exports.pdfGenerate(html);
+    return buffer;
+  },
+  generateKwitansiPembayaran: async (htmlFileUrl, datas) => {
+    let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
+    html = html.replace("VALUE_NIS_SISWA", datas.student_nis);
+    html = html.replace("VALUE_NAMA_SISWA", datas.student_full_name);
+    html = html.replace("VALUE_KELAS_SISWA", datas.class_class_name);
+    html = html.replace("VALUE_TAHUN_AJARAN", `${datas.tahun_ajaran}`);
+    html = html.replace(
+      "VALUE_TANGGAL_SISWA",
+      `${dateConvert(
+        datas.payment[0].payment_rate_date_pay ?? datas.payment[0].created_at
+      )}`
+    );
+    html = html.replace("VALUE_NO_REFERENSI", `${datas.no_ref}`);
+    html = html.replace(
+      "VALUE_AKUN_KAS_SISWA",
+      datas.payment[0]?.payment_rate_via_name
+    );
+    let tableRows = "";
+    datas.payment.forEach((data, index) => {
+      tableRows += tableKwitansiPembayaran(data, index, datas);
+    });
+    html = html.replace("VALUE_TABEL_PEMBAYARAN", tableRows);
+
+    html = html.replace(
+      "VALUE_TOTAL_PEMBAYARAN",
+      `Rp. ${rupiahConvert(datas.total)}`
+    );
+    html = html.replace(
+      "VALUE_TERBILANG",
+      `${terbilang_rupiah(datas.total)} Rupiah`
+    );
+
     html = html.replace(
       "VALUE_TANGGAL_DOKUMEN",
       `Depok, ${moment().locale("id").format("DD MMMM YYYY")}`
