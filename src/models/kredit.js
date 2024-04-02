@@ -14,15 +14,54 @@ module.exports = {
         }
       );
     }),
+  getAllKreditNoSubmittedByRef: (unitId, noRef) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT
+        kredit.*,
+        account1.account_code AS account_cash_account_code,
+        account1.account_description AS account_cash_account_desc,
+        account2.account_code AS account_cost_account_code,
+        account2.account_description AS account_cost_account_desc
+    FROM
+        kredit
+    INNER JOIN ACCOUNT account1 ON
+        account1.account_id = kredit.account_cash_account
+    INNER JOIN ACCOUNT account2 ON
+        account2.account_id = account_cost_account
+    WHERE
+        kredit.unit_unit_id = ${unitId} AND kredit_no_ref = '${noRef}'`,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
 
   getKreditById: (id) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT * FROM class where class_id=?",
+        "SELECT * FROM kredit where kredit_id=?",
         id,
         (error, result) => {
           if (!error) {
             resolve(result[0]);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
+  getKreditByNoRef: (noRef) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT * FROM kredit where kredit_no_ref LIKE '${noRef}%' AND is_submit=1 group by kredit_no_ref ORDER by kredit_no_ref desc`,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
           } else {
             reject(error);
           }
@@ -34,7 +73,7 @@ module.exports = {
       connection.query("INSERT INTO kredit set ?", setData, (error, result) => {
         if (!error) {
           const newData = {
-            class_id: parseInt(result.insertId, 10),
+            insertId: parseInt(result.insertId, 10),
             ...setData,
           };
           resolve(newData);
@@ -48,6 +87,25 @@ module.exports = {
       connection.query(
         "UPDATE kredit set ? WHERE kredit_id=?",
         [setData, id],
+        (error, result) => {
+          if (!error) {
+            const newData = {
+              kredit_id: parseInt(id, 10),
+              ...result,
+              field: { id: parseInt(id, 10), ...setData },
+            };
+            resolve(newData);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
+  putKreditsByMoreId: (ids, setData) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `UPDATE kredit set ? WHERE kredit_id IN(${ids})`,
+        [setData],
         (error, result) => {
           if (!error) {
             const newData = {
