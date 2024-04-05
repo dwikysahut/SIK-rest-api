@@ -6,14 +6,10 @@ const kreditModel = require("../models/kredit");
 const logModel = require("../models/log");
 
 module.exports = {
-  getAllKredit: promiseHandler(async (req, res, next) => {
+  getAllKreditSubmitted: promiseHandler(async (req, res, next) => {
     const { unit_unit_id } = req.query || "";
-    const query =
-      unit_unit_id == undefined || unit_unit_id == ""
-        ? ""
-        : `where unit_unit_id=${unit_unit_id}`;
 
-    const result = await kelasModel.getAllKelas(query);
+    const result = await kreditModel.getAllKreditSubmitted(unit_unit_id);
     return helpers.response(res, 200, "Get All Kelas Successfully", result);
   }),
   getKelasById: promiseHandler(async (req, res, next) => {
@@ -190,24 +186,44 @@ module.exports = {
   putKredit: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
     const {
-      account_cost_account,
-      kredit_information,
+      kredit_date,
+      kredit_no_ref,
+      kredit_desc,
       kredit_value,
+      account_cash_account,
+      account_cost_account,
       kredit_tax,
-    } = req;
+      kredit_information,
+      unit_unit_id,
+    } = req.body;
+
+    const { token } = req;
+
+    const formBody = {
+      kredit_date,
+      kredit_no_ref,
+      kredit_desc,
+      kredit_value,
+      account_cash_account,
+      account_cost_account,
+      kredit_tax,
+      kredit_information,
+      unit_unit_id,
+    };
+
     const checkData = await kreditModel.getKreditById(id);
     if (!checkData) {
       return next(customErrorApi(404, "ID Not Found"));
     }
-    const formData = {
-      account_cost_account,
-      kredit_information,
-      kredit_value,
-      kredit_tax,
+
+    const result = await kreditModel.putKredit(id, formBody);
+
+    const setDataLog = {
+      description: `${token.user_full_name} Melakukan Ubah Kas Keluar dengan ID ${id}`,
+      user_user_id: token.user_id ?? null,
     };
-    const result = await kreditModel.putKredit(id, formData);
     return helpers.response(res, 200, "Data Kredit Berhasil Diubah", result);
-  }),
+  }, true),
   deleteKredit: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
     console.log(id);

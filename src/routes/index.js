@@ -19,6 +19,7 @@ const dokumenRoutes = require("./dokumen");
 const unitRoutes = require("./unit");
 const cashAccountRoutes = require("./cash-account");
 const kreditRoutes = require("./kredit");
+const debitRoutes = require("./debit");
 
 const Routes = express.Router();
 
@@ -42,5 +43,6 @@ Routes.use("/dokumen", dokumenRoutes);
 Routes.use("/unit", unitRoutes);
 Routes.use("/cash-account", cashAccountRoutes);
 Routes.use("/kredit", kreditRoutes);
+Routes.use("/debit", debitRoutes);
 
 module.exports = Routes;

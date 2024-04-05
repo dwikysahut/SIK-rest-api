@@ -1,36 +1,23 @@
 const connection = require("../config/db.config");
 
 module.exports = {
-  getAllKredit: (unitQuery = "") =>
-    new Promise((resolve, reject) => {
-      connection.query(
-        `SELECT class.*, unit.unit_name as unit_unit_name from class INNER JOIN unit on unit.unit_id=class.unit_unit_id ${unitQuery}`,
-        (error, result) => {
-          if (!error) {
-            resolve(result);
-          } else {
-            reject(error);
-          }
-        }
-      );
-    }),
-  getAllKreditNoSubmittedByRef: (unitId, noRef) =>
+  getAllDebitNoSubmittedByRef: (unitId, noRef) =>
     new Promise((resolve, reject) => {
       connection.query(
         `SELECT
-        kredit.*,
+        debit.*,
         account1.account_code AS account_cash_account_code,
         account1.account_description AS account_cash_account_desc,
         account2.account_code AS account_cost_account_code,
         account2.account_description AS account_cost_account_desc
     FROM
-        kredit
+    debit
     INNER JOIN ACCOUNT account1 ON
-        account1.account_id = kredit.account_cash_account
+        account1.account_id = debit.account_cash_account
     INNER JOIN ACCOUNT account2 ON
         account2.account_id = account_cost_account
     WHERE
-        kredit.unit_unit_id = ${unitId} AND kredit_no_ref = '${noRef}' AND kredit.is_submit='0'`,
+    debit.unit_unit_id = ${unitId} AND debit_no_ref = '${noRef}' and debit.is_submit='0'`,
         (error, result) => {
           if (!error) {
             resolve(result);
@@ -40,23 +27,23 @@ module.exports = {
         }
       );
     }),
-  getAllKreditSubmitted: (unitId, noRef) =>
+  getAllDebitSubmitted: (unitId, noRef) =>
     new Promise((resolve, reject) => {
       connection.query(
         `SELECT
-        kredit.*,
+        debit.*,
         account1.account_code AS account_cash_account_code,
         account1.account_description AS account_cash_account_desc,
         account2.account_code AS account_cost_account_code,
         account2.account_description AS account_cost_account_desc
     FROM
-        kredit
+    debit
     INNER JOIN ACCOUNT account1 ON
-        account1.account_id = kredit.account_cash_account
+        account1.account_id = debit.account_cash_account
     INNER JOIN ACCOUNT account2 ON
         account2.account_id = account_cost_account
     WHERE
-       ${unitId && `kredit.unit_unit_id = ${unitId} and `}is_submit=1 `,
+       ${unitId && `debit.unit_unit_id = ${unitId} and `}is_submit=1 `,
         (error, result) => {
           if (!error) {
             resolve(result);
@@ -66,10 +53,10 @@ module.exports = {
         }
       );
     }),
-  getKreditById: (id) =>
+  getDebitById: (id) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT * FROM kredit where kredit_id=?",
+        "SELECT * FROM debit where debit_id=?",
         id,
         (error, result) => {
           if (!error) {
@@ -80,10 +67,10 @@ module.exports = {
         }
       );
     }),
-  getKreditByNoRef: (noRef) =>
+  getDebitByNoRef: (noRef) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT * FROM kredit where kredit_no_ref LIKE '${noRef}%' AND is_submit=1 group by kredit_no_ref ORDER by kredit_no_ref desc`,
+        `SELECT * FROM debit where debit_no_ref LIKE '${noRef}%' AND is_submit=1 group by debit_no_ref ORDER by debit_no_ref desc`,
         (error, result) => {
           if (!error) {
             resolve(result);
@@ -93,9 +80,9 @@ module.exports = {
         }
       );
     }),
-  postKredit: (setData) =>
+  postDebit: (setData) =>
     new Promise((resolve, reject) => {
-      connection.query("INSERT INTO kredit set ?", setData, (error, result) => {
+      connection.query("INSERT INTO debit set ?", setData, (error, result) => {
         if (!error) {
           const newData = {
             insertId: parseInt(result.insertId, 10),
@@ -107,15 +94,15 @@ module.exports = {
         }
       });
     }),
-  putKredit: (id, setData) =>
+  putDebit: (id, setData) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "UPDATE kredit set ? WHERE kredit_id=?",
+        "UPDATE debit set ? WHERE debit_id=?",
         [setData, id],
         (error, result) => {
           if (!error) {
             const newData = {
-              kredit_id: parseInt(id, 10),
+              debit_id: parseInt(id, 10),
               ...result,
               field: { id: parseInt(id, 10), ...setData },
             };
@@ -126,15 +113,15 @@ module.exports = {
         }
       );
     }),
-  putKreditsByMoreId: (ids, setData) =>
+  putDebitssByMoreId: (ids, setData) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `UPDATE kredit set ? WHERE kredit_id IN(${ids})`,
+        `UPDATE debit set ? WHERE debit_id IN(${ids})`,
         [setData],
         (error, result) => {
           if (!error) {
             const newData = {
-              kredit_id: ids,
+              debit_id: ids,
               ...result,
               field: { id: ids, ...setData },
             };
@@ -145,15 +132,15 @@ module.exports = {
         }
       );
     }),
-  deleteKredit: (id) =>
+  deleteDebit: (id) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "DELETE FROM kredit WHERE kredit_id=?",
+        "DELETE FROM debit WHERE debit_id=?",
         id,
         (error, result) => {
           if (!error) {
             const newData = {
-              kredit_id: parseInt(id, 10),
+              debit_id: parseInt(id, 10),
               ...result,
             };
             resolve(newData);
