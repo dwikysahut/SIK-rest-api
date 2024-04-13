@@ -39,6 +39,22 @@ module.exports = {
   <td>${rupiahConvert(parseInt(data.payment_rate_bill, 10))}</td>
 
 </tr>`,
+  tableKasKredit: (data, index) => `  <tr>
+  <td>${index + 1}</td>
+  <td>${data.account_cost_account_code}-${data.account_cost_account_desc}</td>
+  <td>${data.kredit_information}
+</td>
+  <td>${rupiahConvert(parseInt(data.kredit_value, 10))}</td>
+
+</tr>`,
+  tableKasDebit: (data, index) => `  <tr>
+  <td>${index + 1}</td>
+  <td>${data.account_cost_account_code}-${data.account_cost_account_desc}</td>
+  <td>${data.debit_information}
+  </td>
+  <td>${rupiahConvert(parseInt(data.debit_value, 10))}</td>
+
+</tr>`,
   tableKwitansiPembayaran: (data, index, datas) => `  <tr>
   <td>${index + 1}</td>
   <td>${data.pos_pay_name} T.A ${data.period_start}/${data.period_end}${

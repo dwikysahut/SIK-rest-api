@@ -9,6 +9,8 @@ Route.get(
   dokumenController.getDokumenTagihanPembayaran
 )
   .get("/rincian-pembayaran/:id", dokumenController.getDokumenRincianPembayaran)
+  .get("/kredit/:id", dokumenController.getDokumenKredit)
+  .get("/debit/:id", dokumenController.getDokumenDebit)
   .post("/kwitansi-pembayaran", dokumenController.getKwitansiPembayaran)
   .get(
     "/public/tagihan-pembayaran",

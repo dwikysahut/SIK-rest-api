@@ -4,12 +4,16 @@ const {
   generateRincianPembayaran,
   generateTagihanPembayaran,
   generateKwitansiPembayaran,
+  generateKredit,
+  generateDebit,
 } = require("../middleware/documentService");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const monthlyPaymentModel = require("../models/monthly-payment");
 const freePaymentModel = require("../models/free-payment");
 const detailFreePaymentModel = require("../models/detail-free-payment-transaction");
 const paymentTransactionModel = require("../models/payment-transaction");
+const kreditModel = require("../models/kredit");
+const debitModel = require("../models/debit");
 const tahunAjaranModel = require("../models/tahun-ajaran");
 const studentModel = require("../models/siswa");
 const { decryptData, encryptData } = require("../utils/encrypt");
@@ -79,6 +83,27 @@ module.exports = {
       "GET dokumen tagihan pembayaran berhasil",
       result
     );
+  }),
+  getDokumenKredit: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const data = await kreditModel.getKreditDokumenById(id);
+    const result = await generateKredit(
+      "../assets/pdfTemplate/dokumen-kas.html",
+      data
+    );
+    console.log(result);
+    return helpers.response(res, 200, "GET dokumen kredit berhasil", result);
+  }),
+  getDokumenDebit: promiseHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const data = await debitModel.getDebitDokumenById(id);
+    console.log(data);
+    const result = await generateDebit(
+      "../assets/pdfTemplate/dokumen-kas.html",
+      data
+    );
+    console.log(result);
+    return helpers.response(res, 200, "GET dokumen kredit berhasil", result);
   }),
   getPublicDokumenTagihanPembayaran: promiseHandler(async (req, res, next) => {
     const paramsData = {

@@ -67,6 +67,33 @@ module.exports = {
         }
       );
     }),
+  getDebitDokumenById: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT
+        debit.*,
+        account1.account_code AS account_cash_account_code,
+        account1.account_description AS account_cash_account_desc,
+        account2.account_code AS account_cost_account_code,
+        account2.account_description AS account_cost_account_desc
+    FROM
+    debit
+    INNER JOIN ACCOUNT account1 ON
+        account1.account_id = debit.account_cash_account
+    INNER JOIN ACCOUNT account2 ON
+        account2.account_id = account_cost_account
+    WHERE
+    debit_id=?`,
+        id,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
   getDebitByNoRef: (noRef) =>
     new Promise((resolve, reject) => {
       connection.query(

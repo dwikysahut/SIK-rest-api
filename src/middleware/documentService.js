@@ -8,6 +8,8 @@ const {
   tableHtmlRincianPembayaran,
   tableTagihanPembayaran,
   tableKwitansiPembayaran,
+  tableKasKredit,
+  tableKasDebit,
 } = require("../assets/htmlTemplate");
 module.exports = {
   pdfGenerate: async function (htmlFile, opts = {}) {
@@ -147,6 +149,74 @@ module.exports = {
     );
     html = html.replace("VALUE_NIP", "");
 
+    const buffer = await module.exports.pdfGenerate(html);
+    return buffer;
+  },
+
+  generateKredit: async (htmlFileUrl, datas) => {
+    console.log(datas);
+    let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
+    html = html.replace("VALUE_TITLE_DOKUMEN", "Bukti Kas Keluar");
+    html = html.replace(/VALUE_NO_REFERENSI/g, datas[0].kredit_no_ref);
+    html = html.replace(
+      "VALUE_AKUN_KAS",
+      `${datas[0].account_cash_account_desc}`
+    );
+    html = html.replace(
+      "VALUE_TANGGAL",
+      dateConvert(datas[0].kredit_created_at)
+    );
+    html = html.replace("VALUE_RINCIAN", "pengeluaran");
+    html = html.replace("VALUE_HEADER_JUMLAH", "Jumlah Pengeluaran");
+    html = html.replace("VALUE_HEADER_TOTAL", "Jumlah Total Pengeluaran");
+    html = html.replace(
+      "VALUE_TERBILANG",
+      `${terbilang_rupiah(datas[0].kredit_value)} Rupiah`
+    );
+    html = html.replace(
+      "VALUE_TOTAL",
+      rupiahConvert(parseInt(datas[0].kredit_value, 10))
+    );
+
+    let tableRows = "";
+    datas.forEach((data, index) => {
+      tableRows += tableKasKredit(data, index);
+    });
+    html = html.replace("VALUE_TABEL_KAS", tableRows);
+    const buffer = await module.exports.pdfGenerate(html);
+    return buffer;
+  },
+
+  generateDebit: async (htmlFileUrl, datas) => {
+    console.log(datas);
+    let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
+    html = html.replace("VALUE_TITLE_DOKUMEN", "Bukti Kas Keluar");
+    html = html.replace(/VALUE_NO_REFERENSI/g, datas[0].debit_no_ref);
+    html = html.replace(
+      "VALUE_AKUN_KAS",
+      `${datas[0].account_cash_account_desc}`
+    );
+    html = html.replace(
+      "VALUE_TANGGAL",
+      dateConvert(datas[0].debit_created_at)
+    );
+    html = html.replace("VALUE_RINCIAN", "pengeluaran");
+    html = html.replace("VALUE_HEADER_JUMLAH", "Jumlah Pemasukan");
+    html = html.replace("VALUE_HEADER_TOTAL", "Jumlah Total Pemasukan");
+    html = html.replace(
+      "VALUE_TERBILANG",
+      `${terbilang_rupiah(datas[0].debit_value)} Rupiah`
+    );
+    html = html.replace(
+      "VALUE_TOTAL",
+      rupiahConvert(parseInt(datas[0].debit_value, 10))
+    );
+
+    let tableRows = "";
+    datas.forEach((data, index) => {
+      tableRows += tableKasDebit(data, index);
+    });
+    html = html.replace("VALUE_TABEL_KAS", tableRows);
     const buffer = await module.exports.pdfGenerate(html);
     return buffer;
   },
