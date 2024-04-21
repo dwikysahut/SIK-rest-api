@@ -125,4 +125,24 @@ module.exports = {
         }
       );
     }),
+  //saldo awal
+  putSaldoAwal: (id, setData) =>
+    new Promise((resolve, reject) => {
+      console.log(id);
+      console.log(setData);
+      connection.query(
+        "UPDATE cash_account SET ? where cash_account_id =?",
+        [setData, id],
+        (error, result) => {
+          if (!error) {
+            const newData = {
+              cash_account_id: id,
+              ...setData,
+            };
+            return resolve(newData);
+          }
+          return reject(error);
+        }
+      );
+    }),
 };

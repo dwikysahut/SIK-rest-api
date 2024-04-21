@@ -3,6 +3,7 @@ const helpers = require("../helpers");
 const { customErrorApi } = require("../helpers/CustomError");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const cashAccountModel = require("../models/cash-account");
+const saldoAwal = require("../models/cash-account");
 
 module.exports = {
   getAllCashAccount: promiseHandler(async (req, res, next) => {
@@ -14,17 +15,28 @@ module.exports = {
     const queryFormat = {};
 
     const result = await cashAccountModel.getAllCashAccount(query);
+    const newResult = {
+      data: result,
+      total_debit: result.reduce(
+        (accumulator, currentValue) =>
+          accumulator + parseFloat(currentValue.cash_account_debit, 10),
+        0
+      ),
+      total_kredit: result.reduce(
+        (accumulator, currentValue) =>
+          accumulator + parseFloat(currentValue.cash_account_kredit, 10),
+        0
+      ),
+    };
 
-    return helpers.response(res, 200, "Get All Kas Berhasil", result);
+    return helpers.response(res, 200, "Get Saldo Awal Berhasil", newResult);
   }),
   putCashAccount: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { unit_unit_id } = req.body;
+    const { body } = req;
 
-    const queryFormat = {};
+    const result = await cashAccountModel.putSaldoAwal(id, body);
 
-    const result = await cashAccountModel.getAllCashAccount(query);
-
-    return helpers.response(res, 200, "Get All Alumni Successfully", result);
+    return helpers.response(res, 200, "Put Saldo Awal Successfully", result);
   }),
 };
