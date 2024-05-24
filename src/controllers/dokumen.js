@@ -51,6 +51,7 @@ module.exports = {
         item.period_start < currentTahunAjaran.period_start &&
         item.period_end < currentTahunAjaran.period_end
     );
+    console.log(previousBilling);
     const resultObject = {
       ...dataSiswa,
       ...currentTahunAjaran,
@@ -191,6 +192,8 @@ module.exports = {
         student_id,
         no_referensi
       );
+    console.log(resultFreePayment);
+    // console.log(resultMonthlPayment);
     ///lanjut sini
     const newFormatResultFree = resultFreePayment.map((item) => ({
       ...item,

@@ -12,9 +12,9 @@ module.exports = {
         account2.account_description AS account_cost_account_desc
     FROM
     debit
-    INNER JOIN ACCOUNT account1 ON
+    INNER JOIN account account1 ON
         account1.account_id = debit.account_cash_account
-    INNER JOIN ACCOUNT account2 ON
+    INNER JOIN account account2 ON
         account2.account_id = account_cost_account
     WHERE
     debit.unit_unit_id = ${unitId} AND debit_no_ref = '${noRef}' and debit.is_submit='0'`,
@@ -38,9 +38,9 @@ module.exports = {
         account2.account_description AS account_cost_account_desc
     FROM
     debit
-    INNER JOIN ACCOUNT account1 ON
+    INNER JOIN account account1 ON
         account1.account_id = debit.account_cash_account
-    INNER JOIN ACCOUNT account2 ON
+    INNER JOIN account account2 ON
         account2.account_id = account_cost_account
     WHERE
        ${unitId && `debit.unit_unit_id = ${unitId} and `}is_submit=1 `,
@@ -78,9 +78,9 @@ module.exports = {
         account2.account_description AS account_cost_account_desc
     FROM
     debit
-    INNER JOIN ACCOUNT account1 ON
+    INNER JOIN account account1 ON
         account1.account_id = debit.account_cash_account
-    INNER JOIN ACCOUNT account2 ON
+    INNER JOIN account account2 ON
         account2.account_id = account_cost_account
     WHERE
     debit_id=?`,

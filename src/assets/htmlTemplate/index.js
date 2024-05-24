@@ -33,7 +33,7 @@ module.exports = {
   },
   tableTagihanPembayaran: (data, index, datas) => `  <tr>
   <td>${index + 1}</td>
-  <td>${data.pos_pay_name} T.A ${datas.period_start}/${datas.period_end}${
+  <td>${data.pos_pay_name} T.A ${data.period_start}/${data.period_end}${
     data.month_name ? `(${data.month_name})` : " (bebas)"
   }</td>
   <td>${rupiahConvert(parseInt(data.payment_rate_bill, 10))}</td>
@@ -74,6 +74,49 @@ module.exports = {
       10
     )
   )}</td>
+  <td>${rupiahConvert(
+    parseInt(data.payment_rate_bebas_pay_remaining ?? "-", 10)
+  )}</td>
 
 </tr>`,
+
+  tableLaporanPerTanggal: () => `
+<section style="display: flex; flex-direction: column;">
+<table>
+    <thead>
+        <th>NO.</th>
+        <th>NIS</th>
+        <th>NAMA SISWA</th>
+        <th>TAGIHAN</th>
+        <th>SUDAH BAYAR</th>
+        <th>KEKURANGAN</th>
+        <th>KETERANGAN</th>
+    </thead>
+    <tbody>
+        VALUE_TABEL_PEMBAYARAN_PER_TANGGAL
+    </tbody>
+</table>
+<div style="width: 100%; align-self: flex-end; margin-top: 1rem;background-color: lightgray;">
+    <div style="display: flex;">
+        <p style="flex: 1;"><strong>TOTAL PEMBAYARAN SISWA</strong></p>
+        <p style="flex:1;"><strong>VALUE_TOTAL_PEMBAYARAN_SISWA</strong></p>
+
+    </div>
+
+</div>
+</section>
+
+
+<section
+style="margin-top: 3rem; padding-inline: 2rem; display: flex; justify-content: flex-end; align-items: flex-end; flex-direction: column;">
+<div style="flex: 1; justify-self: flex-end;">
+
+    <p>VALUE_TANGGAL_DOKUMEN</p>
+    <p>Bendahara</p>
+    <p style="margin-top: 3rem;">
+        <strong>TOMY HARIANTO</strong>
+    </p>
+    <p>NIP. VALUE_NIP</p>
+</div>
+</section>`,
 };

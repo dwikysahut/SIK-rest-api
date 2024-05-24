@@ -1,20 +1,19 @@
-const db = require('mysql2');
-const bluebird = require('bluebird');
-require('dotenv').config();
+const db = require("mysql2");
+const bluebird = require("bluebird");
+require("dotenv").config();
 
 const connection = db.createConnection({
   host: process.env.DB_HOST,
-  user: 'root',
+  user: process.env.DB_USER,
 
-  port: process.env.DB_PORT,
-  // password: '123',
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
 
 connection.connect((err) => {
   if (err) throw err;
 
-  console.log('database connected');
+  console.log("database connected");
 });
 connection.query = bluebird.promisify(connection.query);
 

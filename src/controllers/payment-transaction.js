@@ -520,18 +520,33 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
       payment_rate_bebas_pay_number,
     } = req.body;
     const { token } = req;
+    const dataFreePaymentById = await freePaymentModel.getFreePaymentById(id);
+
+    //ambil total dari data sebelum data baru diinputkan
+    const resultDetailTemp =
+      await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
+    const totalTemp = resultDetailTemp.reduce(
+      (accumulator, currentValue) =>
+        accumulator + parseInt(currentValue.payment_rate_bebas_pay_bill, 10),
+      0
+    );
 
     const formBodyDetail = {
       payment_rate_bebas_pay_bill,
       is_submit_payment: 0,
       payment_rate_bebas_pay_desc,
       detail_payment_rate_id: id,
+      payment_rate_bebas_pay_remaining:
+        dataFreePaymentById.payment_rate_bill -
+        dataFreePaymentById.payment_rate_discount -
+        totalTemp -
+        payment_rate_bebas_pay_bill,
       payment_rate_via: parseInt(payment_rate_via) || null,
       payment_rate_bebas_pay_number,
     };
 
     await freePaymentModel.postDetailFreePayment(formBodyDetail);
-
+    // total untuk data setelah dinput
     const resultDetail =
       await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
     console.log(resultDetail);
@@ -541,7 +556,6 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
       0
     );
 
-    const dataFreePaymentById = await freePaymentModel.getFreePaymentById(id);
     const formBodyPayment = {
       payment_rate_total_pay: total,
       payment_rate_date_pay: payment_rate_date_pay,

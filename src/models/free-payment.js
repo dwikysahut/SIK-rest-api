@@ -95,11 +95,11 @@ module.exports = {
         }
       );
     }),
-  getTagihanFreePaymentIdPayment: (id) =>
+  getTagihanFreePaymentAllStudent: (unitId, classId, periodId) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT detail_payment_rate_bebas.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id WHERE payment_rate.student_student_id=? ",
-        id,
+        "SELECT detail_payment_rate_bebas.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id INNER JOIN payment ON payment.payment_id=payment_rate.payment_payment_id INNER JOIN student ON student.student_id=payment_rate.student_student_id WHERE student.unit_unit_id=? AND student.class_class_id=? AND payment.period_period_id=?",
+        [unitId, classId, periodId],
         (error, result) => {
           if (!error) {
             resolve(result);
@@ -165,7 +165,33 @@ module.exports = {
         }
       );
     }),
-
+  getFreePaymentTypeAllStudentByPaymentQuery: (ids) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT * FROM view_payment_type WHERE payment_rate_id IN(${ids}) AND payment_type='BEBAS'`,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getTagihanFreePaymentIdPayment: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        "SELECT detail_payment_rate_bebas.* FROM detail_payment_rate_bebas INNER JOIN payment_rate ON payment_rate.payment_rate_id=detail_payment_rate_bebas.payment_rate_id WHERE payment_rate.student_student_id=? ",
+        id,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
   putMonthlyPayment: (id, setData) =>
     new Promise((resolve, reject) => {
       connection.query(

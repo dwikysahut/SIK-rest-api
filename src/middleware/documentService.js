@@ -92,10 +92,13 @@ module.exports = {
       "VALUE_TOTAL_TAGIHAN_SISWA_SEKARANG",
       rupiahConvert(datas.current_billing.total_bill)
     );
+
     let tableRowsLalu = "";
+    console.log(datas.previous_billing);
     datas.previous_billing.bill.forEach((data, index) => {
       tableRowsLalu += tableTagihanPembayaran(data, index, datas);
     });
+    console.log(tableRowsLalu);
     html = html.replace("VALUE_TABEL_TAHUN_AJARAN_LALU", tableRowsLalu);
     html = html.replace(
       "VALUE_TOTAL_TAGIHAN_SISWA_LALU",
@@ -136,7 +139,7 @@ module.exports = {
 
     html = html.replace(
       "VALUE_TOTAL_PEMBAYARAN",
-      `Rp. ${rupiahConvert(datas.total)}`
+      `${rupiahConvert(datas.total)}`
     );
     html = html.replace(
       "VALUE_TERBILANG",
