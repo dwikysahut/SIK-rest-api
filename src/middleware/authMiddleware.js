@@ -3,7 +3,6 @@ const helpers = require("../helpers");
 
 module.exports = {
   authentication: (req, res, next) => {
-    console.log(req.headers.authorization);
     const token = req.headers.authorization.split(" ")[1];
     jwt.verify(token, process.env.SECRET_KEY, (error, result) => {
       if (

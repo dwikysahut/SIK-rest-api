@@ -45,7 +45,7 @@ module.exports = {
   }),
   checkMe: promiseHandler(async (req, res, next) => {
     const { token } = req.body;
-    console.log(token);
+    console.log('fffff',req.body.token);
     const resultToken = jwt.verify(token, process.env.SECRET_KEY);
     console.log(resultToken);
     const result = await authModel.getUserByUsername(resultToken.user_email);
