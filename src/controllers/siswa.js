@@ -20,21 +20,13 @@ module.exports = {
     const queryFormat = {};
     console.log(query);
     // untuk penyesuaian query di sql
-    queryFormat.class_class_id =
-      query.class_id == "" || query.class_id == undefined ? "" : query.class_id;
-    queryFormat.student_status =
-      query.status == "" || query.status == undefined ? "" : query.status;
-    queryFormat.majors_majors_id =
-      query.majors_id == "" || query.majors_id == undefined
-        ? ""
-        : query.majors_id;
-    queryFormat.unit_unit_id =
-      query.unit_id == "" || query.unit_id == undefined ? "" : query.unit_id;
+    queryFormat.class_class_id = query.class_id == "" || query.class_id == undefined ? "" : query.class_id;
+    queryFormat.student_status = query.status == "" || query.status == undefined ? "" : query.status;
+    queryFormat.majors_majors_id = query.majors_id == "" || query.majors_id == undefined ? "" : query.majors_id;
+    queryFormat.unit_unit_id = query.unit_id == "" || query.unit_id == undefined ? "" : query.unit_id;
     console.log(queryFormat);
 
     const queryToString = helpers.queryToString(queryFormat);
-    console.log(queryToString);
-    console.log(queryToString);
 
     const result = await siswaModel.getAllSiswa(queryToString);
 
@@ -56,12 +48,7 @@ module.exports = {
       return next(customErrorApi(404, "ID Not Found"));
     }
 
-    return helpers.response(
-      res,
-      200,
-      "Get Siswa By Prodi Successfully",
-      result
-    );
+    return helpers.response(res, 200, "Get Siswa By Prodi Successfully", result);
   }),
   postSiswa: promiseHandler(async (req, res, next) => {
     const { body } = req;
@@ -73,12 +60,7 @@ module.exports = {
     console.log(newBody);
     console.log("siswa nih");
     const result = await siswaModel.postSiswa(newBody);
-    return helpers.response(
-      res,
-      200,
-      "Data Siswa Berhasil Ditambahkan",
-      result
-    );
+    return helpers.response(res, 200, "Data Siswa Berhasil Ditambahkan", result);
   }),
   putSiswa: promiseHandler(async (req, res, next) => {
     const { id } = req.params;

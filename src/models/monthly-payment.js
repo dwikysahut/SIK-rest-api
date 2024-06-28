@@ -71,18 +71,43 @@ module.exports = {
         }
       );
     }),
-  getTagihanMonthlyPaymentAllStudentByPaymentQuery: (
-    unitId,
-    classId,
-    periodId,
-    payment_type
-  ) =>
+  getTagihanMonthlyPaymentAllStudentByPaymentQuery: (unitId, classId, periodId, payment_type) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, payment.payment_id, class.class_name,SUM(payment_rate_bill) as total_tagihan FROM  payment_rate INNER JOIN student ON payment_rate.student_student_id=student.student_id INNER JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id WHERE student.unit_unit_id=${unitId} ${
-          classId != "" ? `and class.class_id=${classId}` : ""
+        `SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, payment.payment_id, class.class_name,SUM(payment_rate_bill) as total_tagihan FROM  payment_rate INNER JOIN student ON payment_rate.student_student_id=student.student_id INNER JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id WHERE student.unit_unit_id=${unitId} ${classId != "" ? `and class.class_id=${classId}` : ""
         } AND period.period_id=${periodId} AND payment.payment_id=${payment_type} GROUP BY detail_payment_rate_bulan.detail_payment_rate_id`,
         [unitId, periodId, payment_type],
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getTagihanMonthlyPaymentAllStudentByPos: (unitId, classId, periodId, payment_type) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, payment.payment_id, class.class_name FROM  payment_rate INNER JOIN student ON payment_rate.student_student_id=student.student_id INNER JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id WHERE student.unit_unit_id=${unitId} ${classId != "" ? `and class.class_id=${classId}` : ""
+        } AND period.period_id=${periodId} AND payment.pos_pos_id=${payment_type} GROUP BY detail_payment_rate_bulan.detail_payment_rate_id`,
+        [unitId, periodId, payment_type],
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getTagihanMonthlyPaymentAllStudentByPosWithDate: (unitId, classId, periodId, date_awal, date_akhir) =>
+    new Promise((resolve, reject) => {
+      console.log(classId == "")
+      connection.query(
+        `SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, payment.payment_id, pos_pay.pos_pay_name,pos_pay.pos_pay_description, class.class_name FROM  payment_rate INNER JOIN student ON payment_rate.student_student_id=student.student_id INNER JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id LEFT JOIN pos_pay ON pos_pay.pos_pay_id=payment.pos_pos_id WHERE student.unit_unit_id=${unitId} ${classId != "" ? `and class.class_id=${classId}` : ""
+        } AND period.period_id=${periodId} AND is_submit_payment=1 AND DATE(detail_payment_rate_bulan.payment_rate_date_pay) BETWEEN '${date_awal}' AND '${date_akhir}' GROUP BY detail_payment_rate_bulan.detail_payment_rate_id`
+        ,
         (error, result) => {
           if (!error) {
             resolve(result);
@@ -95,7 +120,21 @@ module.exports = {
   getTagihanMonthlyPaymentAllStudent: (unitId, classId, periodId) =>
     new Promise((resolve, reject) => {
       connection.query(
-        "SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, class.class_name,SUM(payment_rate_bill) as total_tagihan FROM student LEFT JOIN payment_rate ON payment_rate.student_student_id=student.student_id LEFT JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id WHERE payment_rate_status=0 AND student.unit_unit_id=? and class.class_id=? AND period.period_id=? GROUP BY payment_rate.student_student_id",
+        "SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, class.class_name,SUM(payment_rate_bill) as total_tagihan FROM student LEFT JOIN payment_rate ON payment_rate.student_student_id=student.student_id LEFT JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id WHERE payment_rate_status=0 AND student.unit_unit_id=? and class.class_id=? AND period.period_id=? ",
+        [unitId, classId, periodId],
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getTagihanMonthlyPaymentAllStudentWithDate: (unitId, classId, periodId, tanggal_awal, tanggal_akhir) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT detail_payment_rate_bulan.*,unit.unit_name,student.*, class.class_name,SUM(payment_rate_bill) as total_tagihan FROM student LEFT JOIN payment_rate ON payment_rate.student_student_id=student.student_id LEFT JOIN detail_payment_rate_bulan  ON payment_rate.payment_rate_id=detail_payment_rate_bulan.payment_rate_id LEFT JOIN unit on unit.unit_id=student.unit_unit_id LEFT JOIN class on class.class_id=student.class_class_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN period ON period.period_id=payment.period_period_id WHERE payment_rate_status=0 AND student.unit_unit_id=? and class.class_id=? AND period.period_id=? AND payment_rate_date_pay BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}' `,
         [unitId, classId, periodId],
         (error, result) => {
           if (!error) {

@@ -6,20 +6,14 @@ const paymentTypeModel = require("../models/payment-type");
 
 module.exports = {
   getAllPaymentType: promiseHandler(async (req, res, next) => {
-    const { unit_unit_id } = req.query;
-    const query =
-      unit_unit_id == undefined || unit_unit_id == ""
-        ? ""
-        : `WHERE unit_unit_id=${unit_unit_id}`;
-
+    const { unit_unit_id, period_period_id } = req.query;
+    let query = unit_unit_id == undefined || unit_unit_id == "" ? "" : `WHERE unit_unit_id=${unit_unit_id}`;
+    query += period_period_id == undefined ? "" : ` AND period_period_id=${period_period_id}`;
+    console.log(query);
+    console.log("ssss");
     const result = await paymentTypeModel.getAllPaymentType(query);
 
-    return helpers.response(
-      res,
-      200,
-      "Get All Payment Type Successfully",
-      result
-    );
+    return helpers.response(res, 200, "Get All Payment Type Successfully", result);
   }),
   getPaymentTypeById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -28,12 +22,7 @@ module.exports = {
       return next(customErrorApi(404, "ID Not Found"));
     }
 
-    return helpers.response(
-      res,
-      200,
-      "Get Payment Type By ID Successfully",
-      result
-    );
+    return helpers.response(res, 200, "Get Payment Type By ID Successfully", result);
   }),
 
   postPaymentType: promiseHandler(async (req, res, next) => {
@@ -71,11 +60,6 @@ module.exports = {
       return next(customErrorApi(404, "ID Not Found"));
     }
     const result = await paymentTypeModel.deletePaymentType(id);
-    return helpers.response(
-      res,
-      200,
-      "Delete Payment Type Successfully",
-      result
-    );
+    return helpers.response(res, 200, "Delete Payment Type Successfully", result);
   }),
 };

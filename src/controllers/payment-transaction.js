@@ -20,11 +20,10 @@ module.exports = {
     if (!resultSiswa) {
       return next(customErrorApi(404, "ID Not Found"));
     }
-    const resultPayment =
-      await paymentTransactionModel.getPaymentTransactionByStudent(id, {
-        period_start: query.period_start,
-        period_end: query.period_end,
-      });
+    const resultPayment = await paymentTransactionModel.getPaymentTransactionByStudent(id, {
+      period_start: query.period_start,
+      period_end: query.period_end,
+    });
     const resultMonthly = await monthlyPaymentModel.getMonthlyPaymentByStudent(
       id,
       query.period_start,
@@ -32,41 +31,26 @@ module.exports = {
     );
     console.log("bulan nih");
     console.log(resultMonthly);
-    const resultFree = await freePaymentModel.getFreePaymentByStudent(
-      id,
-      query.period_start,
-      query.period_end
-    );
+    const resultFree = await freePaymentModel.getFreePaymentByStudent(id, query.period_start, query.period_end);
 
-    const monthlyPaymentType =
-      await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
-    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(
-      id
-    );
+    const monthlyPaymentType = await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
+    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(id);
 
     const freeType = {
       free_type: freePaymentType.map((item) => ({
         ...item,
         sisa_tagihan:
           resultFree.filter(
-            (itemFree) =>
-              item.payment_rate_id === itemFree.payment_rate_id &&
-              itemFree.payment_rate_status == 0
+            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
           )[0]?.payment_rate_bill -
           resultFree.filter(
-            (itemFree) =>
-              item.payment_rate_id === itemFree.payment_rate_id &&
-              itemFree.payment_rate_status == 0
+            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
           )[0]?.payment_rate_discount -
           resultFree.filter(
-            (itemFree) =>
-              item.payment_rate_id === itemFree.payment_rate_id &&
-              itemFree.payment_rate_status == 0
+            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
           )[0]?.payment_rate_total_pay,
         ...resultFree
-          .filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id
-          )
+          .filter((itemFree) => item.payment_rate_id === itemFree.payment_rate_id)
           .map((item) => ({
             ...item,
             payment_rate_bill: parseInt(item.payment_rate_bill),
@@ -74,19 +58,11 @@ module.exports = {
         sisa_tagihan_diskon: parseInt(
           resultFree
             .filter(
-              (itemFree) =>
-                item.payment_rate_id === itemFree.payment_rate_id &&
-                itemFree.payment_rate_status == 0
+              (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
             )
-            .reduce(
-              (accumulator, currentValue) =>
-                accumulator + parseInt(currentValue.payment_rate_bill, 10),
-              0
-            ) -
+            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) -
             resultFree.filter(
-              (itemFree) =>
-                item.payment_rate_id === itemFree.payment_rate_id &&
-                itemFree.payment_rate_status == 0
+              (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
             )[0]?.payment_rate_discount,
           10
         ),
@@ -101,19 +77,11 @@ module.exports = {
         sisa_tagihan: resultMonthly
           .filter(
             (itemMonthly) =>
-              item.payment_rate_id === itemMonthly.payment_rate_id &&
-              itemMonthly.payment_rate_status == 0
+              item.payment_rate_id === itemMonthly.payment_rate_id && itemMonthly.payment_rate_status == 0
           )
-          .reduce(
-            (accumulator, currentValue) =>
-              accumulator + parseInt(currentValue.payment_rate_bill, 10),
-            0
-          ),
+          .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0),
         monthly_payment: resultMonthly
-          .filter(
-            (itemMonthly) =>
-              item.payment_rate_id === itemMonthly.payment_rate_id
-          )
+          .filter((itemMonthly) => item.payment_rate_id === itemMonthly.payment_rate_id)
           .map((item) => ({
             ...item,
             payment_rate_bill: parseInt(item.payment_rate_bill),
@@ -122,40 +90,25 @@ module.exports = {
       ...freeType,
     };
 
-    return helpers.response(
-      res,
-      200,
-      "Get Pembayaran siswa berhasil",
-      newResult
-    );
+    return helpers.response(res, 200, "Get Pembayaran siswa berhasil", newResult);
   }),
   getHistoryPaymentByStudent: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
 
-    const resultMonthly =
-      await monthlyPaymentModel.getHistoryMonthlyPaymentByStudent(id);
-    const resultFree = await freePaymentModel.getHistoryFreePaymentIdPayment(
-      id
-    );
-    const resultFreeids = resultFree
-      .map((item) => item.detail_payment_rate_id)
-      .join(",");
+    const resultMonthly = await monthlyPaymentModel.getHistoryMonthlyPaymentByStudent(id);
+    const resultFree = await freePaymentModel.getHistoryFreePaymentIdPayment(id);
+    const resultFreeids = resultFree.map((item) => item.detail_payment_rate_id).join(",");
     // const resultFreeDetail =
     //   await detailFreePaymentModel.getAllDetailByRangePaymentId(resultFreeids);
 
-    const monthlyPaymentType =
-      await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
-    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(
-      id
-    );
+    const monthlyPaymentType = await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
+    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(id);
     console.log(resultFree);
     const freeType = {
       free_type: freePaymentType.map((item) => ({
         ...item,
         detail_payment: resultFree
-          .filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id
-          )
+          .filter((itemFree) => item.payment_rate_id === itemFree.payment_rate_id)
           .map((item) => ({
             ...item,
             payment_rate_bill: parseInt(item.payment_rate_bill),
@@ -167,10 +120,7 @@ module.exports = {
       monthly_type: monthlyPaymentType.map((item) => ({
         ...item,
         monthly_payment: resultMonthly
-          .filter(
-            (itemMonthly) =>
-              item.payment_rate_id === itemMonthly.payment_rate_id
-          )
+          .filter((itemMonthly) => item.payment_rate_id === itemMonthly.payment_rate_id)
           .map((item) => ({
             ...item,
             payment_rate_bill: parseInt(item.payment_rate_bill),
@@ -179,35 +129,22 @@ module.exports = {
       ...freeType,
     };
 
-    return helpers.response(
-      res,
-      200,
-      "Get History Pembayaran siswa berhasil",
-      newResult
-    );
+    return helpers.response(res, 200, "Get History Pembayaran siswa berhasil", newResult);
   }),
   getTagihanPaymentByStudent: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
 
-    const resultMonthly =
-      await monthlyPaymentModel.getTagihanMonthlyPaymentByStudent(id);
-    const resultFree = await freePaymentModel.getTagihanFreePaymentIdPayment(
-      id
-    );
+    const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentByStudent(id);
+    const resultFree = await freePaymentModel.getTagihanFreePaymentIdPayment(id);
 
-    const monthlyPaymentType =
-      await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
-    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(
-      id
-    );
+    const monthlyPaymentType = await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
+    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(id);
     console.log(resultFree);
     const freeType = {
       free_type: freePaymentType.map((item) => ({
         ...item,
         detail_payment: resultFree
-          .filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id
-          )
+          .filter((itemFree) => item.payment_rate_id === itemFree.payment_rate_id)
           .map((item) => ({
             ...item,
             payment_rate_bill: parseInt(item.payment_rate_bill),
@@ -216,8 +153,7 @@ module.exports = {
     };
 
     const total = [...resultFree, ...resultMonthly].reduce(
-      (accumulator, currentValue) =>
-        accumulator + parseInt(currentValue.payment_rate_bill, 10),
+      (accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10),
       0
     );
 
@@ -225,10 +161,7 @@ module.exports = {
       monthly_type: monthlyPaymentType.map((item) => ({
         ...item,
         monthly_payment: resultMonthly
-          .filter(
-            (itemMonthly) =>
-              item.payment_rate_id === itemMonthly.payment_rate_id
-          )
+          .filter((itemMonthly) => item.payment_rate_id === itemMonthly.payment_rate_id)
           .map((item) => ({
             ...item,
             payment_rate_bill: parseInt(item.payment_rate_bill),
@@ -238,70 +171,59 @@ module.exports = {
       total_tagihan: parseInt(total),
     };
 
-    return helpers.response(
-      res,
-      200,
-      "Get Tagihan Pembayaran siswa berhasil",
-      newResult
-    );
+    return helpers.response(res, 200, "Get Tagihan Pembayaran siswa berhasil", newResult);
   }),
   getTagihanAllStudent: promiseHandler(async (req, res, next) => {
     const { class_id, period_id, unit_id } = req.query;
+    const queryFormat = {};
     console.log(class_id);
-    console.log(period_id);
-    console.log(unit_id);
-    const resultMonthly =
-      await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudent(
-        unit_id || "",
-        class_id || "",
-        period_id || ""
-      );
+    // untuk penyesuaian query di sql
+    queryFormat.class_class_id = class_id == "" || class_id == undefined ? "" : class_id;
+    queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
+    const queryToString = helpers.queryToString(queryFormat);
+
+    const result = await studentModel.getAllSiswa(queryToString);
+    const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudent(
+      unit_id || "",
+      class_id || "",
+      period_id || ""
+    );
     const resultFree = await freePaymentModel.getTagihanFreePaymentAllStudent(
       unit_id || "",
       class_id || "",
       period_id || ""
     );
     console.log(resultMonthly);
-    const newResult = [...resultMonthly, ...resultFree];
-    return helpers.response(
-      res,
-      200,
-      "Get All Tagihan siswa berhasil",
-      newResult
-    );
+    console.log(resultFree.filter((item) => item.student_id == 1)[0]?.payment_rate_bebas_pay_remaining);
+    const newResult = result.map((student) => ({
+      ...student,
+      total_tagihan:
+        resultMonthly
+          .filter((item) => item.student_id == student.student_id)
+          ?.reduce((accumulator, currentValue) => accumulator + parseFloat(currentValue.payment_rate_bill, 10), 0) +
+        (resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bebas_pay_remaining !==
+        undefined
+          ? resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bebas_pay_remaining
+          : 0),
+    }));
+    return helpers.response(res, 200, "Get All Tagihan siswa berhasil", newResult);
   }),
 
   getPaymentReferenceNumberByStudent: promiseHandler(async (req, res, next) => {
     const { id, payment_date } = req.body;
     console.log(payment_date);
-    const resultMonthly =
-      await monthlyPaymentModel.getMonthlyPaymentTransactionNumber(
-        id,
-        payment_date
-      );
-    const resultFree = await freePaymentModel.getFreePaymentTransactionNumber(
-      id,
-      payment_date
-    );
+    const resultMonthly = await monthlyPaymentModel.getMonthlyPaymentTransactionNumber(id, payment_date);
+    const resultFree = await freePaymentModel.getFreePaymentTransactionNumber(id, payment_date);
     const newFormatResultFree = resultFree.map((item) => ({
       ...item,
       payment_rate_number_pay: item.payment_rate_bebas_pay_number,
     }));
     //mengubah array jadi set dan disimpan di array lagi. tujuaannya untuk menghilangkan duplicate
     const allResult = [...resultMonthly, ...newFormatResultFree].filter(
-      (item, index, arr) =>
-        index ===
-        arr.findIndex(
-          (t) => item.payment_rate_number_pay == t.payment_rate_number_pay
-        )
+      (item, index, arr) => index === arr.findIndex((t) => item.payment_rate_number_pay == t.payment_rate_number_pay)
     );
 
-    return helpers.response(
-      res,
-      200,
-      "Get Data Referensi Pembayaran siswa berhasil",
-      allResult
-    );
+    return helpers.response(res, 200, "Get Data Referensi Pembayaran siswa berhasil", allResult);
   }),
 
   putMonthlyPayment: promiseHandler(async (req, res, next) => {
@@ -322,17 +244,11 @@ module.exports = {
       user_user_id: body.user_user_id,
     };
     await logModel.postLog(setDataLog);
-    return helpers.response(
-      res,
-      200,
-      "Input Data Pembayaran bulanan siswa Berhasil",
-      result
-    );
+    return helpers.response(res, 200, "Input Data Pembayaran bulanan siswa Berhasil", result);
   }),
   putMonthlyPaymentById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { student_student_id, payment_rate_via, payment_rate_number_pay } =
-      req.body;
+    const { student_student_id, payment_rate_via, payment_rate_number_pay } = req.body;
     const { token } = req;
     console.log(req.body);
 
@@ -350,16 +266,10 @@ module.exports = {
     };
     console.log(token);
     await logModel.postLog(setDataLog);
-    return helpers.response(
-      res,
-      200,
-      "Ubah Data Pembayaran bulanan siswa Berhasil",
-      result
-    );
+    return helpers.response(res, 200, "Ubah Data Pembayaran bulanan siswa Berhasil", result);
   }, true),
   putSubmitPaymentById: promiseHandler(async (req, res, next) => {
-    const { data_payment, student_id, total, period_start, period_end } =
-      req.body;
+    const { data_payment, student_id, total, period_start, period_end } = req.body;
     const dataFree = data_payment
       .filter((item) => item.payment_type == "BEBAS")
       .map((item) => item.detail_payment_rate_id);
@@ -383,36 +293,23 @@ module.exports = {
     // Using Promise.all to execute both async operations concurrently
     if (dataFree.length > 0 && dataMonthly.length > 0) {
       await Promise.all([
-        paymentTransactionModel.putMonthlyPaymentSubmit(
-          newBodyMonthly,
-          dataMonthly
-        ),
-        paymentTransactionModel.putFreePaymentSubmit(
-          newBodyDetailFree,
-          dataFree
-        ),
+        paymentTransactionModel.putMonthlyPaymentSubmit(newBodyMonthly, dataMonthly),
+        paymentTransactionModel.putFreePaymentSubmit(newBodyDetailFree, dataFree),
       ]);
     } else {
       if (dataMonthly.length) {
-        await paymentTransactionModel.putMonthlyPaymentSubmit(
-          newBodyMonthly,
-          dataMonthly
-        );
+        await paymentTransactionModel.putMonthlyPaymentSubmit(newBodyMonthly, dataMonthly);
       } else if (dataFree.length) {
-        await paymentTransactionModel.putFreePaymentSubmit(
-          newBodyDetailFree,
-          dataFree
-        );
+        await paymentTransactionModel.putFreePaymentSubmit(newBodyDetailFree, dataFree);
       }
     }
     const dataPaymentIdFromFree = data_payment
       .filter((item) => item.payment_type == "BEBAS")
       .map((item) => item.detail_payment_rate_id);
 
-    const resultDataPaymentWithTotal =
-      await freePaymentModel.getAllDetailFreePaymentTypeByIdPayment(
-        dataPaymentIdFromFree
-      );
+    const resultDataPaymentWithTotal = await freePaymentModel.getAllDetailFreePaymentTypeByIdPayment(
+      dataPaymentIdFromFree
+    );
     for (let i = 0; i < resultDataPaymentWithTotal.length; i++) {
       const total = resultDataPaymentWithTotal[i].total_bayar;
       const dataFreePaymentById = await freePaymentModel.getFreePaymentById(
@@ -422,17 +319,9 @@ module.exports = {
         payment_rate_total_pay: total,
         payment_rate_date_pay: payment_rate_date_pay,
         payment_rate_status:
-          dataFreePaymentById.payment_rate_bill -
-            dataFreePaymentById.payment_rate_discount -
-            total <=
-          0
-            ? 1
-            : 0,
+          dataFreePaymentById.payment_rate_bill - dataFreePaymentById.payment_rate_discount - total <= 0 ? 1 : 0,
       };
-      await freePaymentModel.putPaymentFreePayment(
-        formBodyPayment,
-        dataFreePaymentById.detail_payment_rate_id
-      );
+      await freePaymentModel.putPaymentFreePayment(formBodyPayment, dataFreePaymentById.detail_payment_rate_id);
     }
 
     const resultSiswa = await studentModel.getSiswaById(student_id);
@@ -466,15 +355,11 @@ NIS    :  ${resultSiswa.student_nis}
 Kelas  :  ${resultSiswa.class_class_name}
       
 
-telah kami terima Tanggal ${moment()
-        .locale("id")
-        .format("DD MMMM YYYY")} sejumlah ${helpers.rupiahConvert(total)}
+telah kami terima Tanggal ${moment().locale("id").format("DD MMMM YYYY")} sejumlah ${helpers.rupiahConvert(total)}
 
       Referensi ID : ${data_payment[0].payment_rate_number_pay}
 
-Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
-        encData.iv
-      }&encryptedData=${encData.encryptedData}
+Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${encData.iv}&encryptedData=${encData.encryptedData}
 
 *) Silahkan simpan nomor ini jika link tidak aktif.
        `,
@@ -493,21 +378,13 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
     };
 
     const resultSiswa = await studentModel.getSiswaById(student_student_id);
-    const result = await freePaymentModel.putDiscountFreePaymentById(
-      newBody,
-      id
-    );
+    const result = await freePaymentModel.putDiscountFreePaymentById(newBody, id);
     const setDataLog = {
       description: `${token.user_full_name} mengubah diskon pembayaran bebas siswa ${resultSiswa.student_full_name}`,
       user_user_id: token.user_id ?? null,
     };
     await logModel.postLog(setDataLog);
-    return helpers.response(
-      res,
-      200,
-      "Ubah Data Diskon Pembayaran bebas siswa Berhasil",
-      result
-    );
+    return helpers.response(res, 200, "Ubah Data Diskon Pembayaran bebas siswa Berhasil", result);
   }, true),
   putFreePaymentById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -523,11 +400,9 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
     const dataFreePaymentById = await freePaymentModel.getFreePaymentById(id);
 
     //ambil total dari data sebelum data baru diinputkan
-    const resultDetailTemp =
-      await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
+    const resultDetailTemp = await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
     const totalTemp = resultDetailTemp.reduce(
-      (accumulator, currentValue) =>
-        accumulator + parseInt(currentValue.payment_rate_bebas_pay_bill, 10),
+      (accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bebas_pay_bill, 10),
       0
     );
 
@@ -547,12 +422,10 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
 
     await freePaymentModel.postDetailFreePayment(formBodyDetail);
     // total untuk data setelah dinput
-    const resultDetail =
-      await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
+    const resultDetail = await freePaymentModel.getDetailFreePaymentTypeByIdPayment(id);
     console.log(resultDetail);
     const total = resultDetail.reduce(
-      (accumulator, currentValue) =>
-        accumulator + parseInt(currentValue.payment_rate_bebas_pay_bill, 10),
+      (accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bebas_pay_bill, 10),
       0
     );
 
@@ -560,29 +433,16 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
       payment_rate_total_pay: total,
       payment_rate_date_pay: payment_rate_date_pay,
       payment_rate_status:
-        dataFreePaymentById.payment_rate_bill -
-          dataFreePaymentById.payment_rate_discount -
-          total <=
-        0
-          ? 1
-          : 0,
+        dataFreePaymentById.payment_rate_bill - dataFreePaymentById.payment_rate_discount - total <= 0 ? 1 : 0,
     };
     const resultSiswa = await studentModel.getSiswaById(student_student_id);
-    const result = await freePaymentModel.putPaymentFreePayment(
-      formBodyPayment,
-      id
-    );
+    const result = await freePaymentModel.putPaymentFreePayment(formBodyPayment, id);
     const setDataLog = {
       description: `${token.user_full_name} mengubah pembayaran bebas siswa ${resultSiswa.student_full_name}`,
       user_user_id: token.user_id ?? null,
     };
     await logModel.postLog(setDataLog);
-    return helpers.response(
-      res,
-      200,
-      "Ubah Data Pembayaran bebas siswa Berhasil",
-      result
-    );
+    return helpers.response(res, 200, "Ubah Data Pembayaran bebas siswa Berhasil", result);
   }, true),
   deleteMonthlyPaymentById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -605,12 +465,7 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
     };
     console.log(token);
     await logModel.postLog(setDataLog);
-    return helpers.response(
-      res,
-      200,
-      "Delete Data Pembayaran bulanan siswa Berhasil",
-      result
-    );
+    return helpers.response(res, 200, "Delete Data Pembayaran bulanan siswa Berhasil", result);
   }, true),
   getGenerateReferensiCode: promiseHandler(async (req, res, next) => {
     const { ref_code, student_id } = req.query;
@@ -618,15 +473,10 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
     //from monthly payment
     const tableMonthly = "detail_payment_rate_bulan";
     const queryMonthly = `WHERE payment_rate_number_pay LIKE '${code}%' AND payment_rate.student_student_id=${student_id} AND is_submit_payment=1 AND payment_rate_number_pay IS NOT NULL  order by payment_rate_number_pay DESC`;
-    const resultMonthly = await paymentTransactionModel.getReferensiCodeMonthly(
-      tableMonthly,
-      queryMonthly
-    );
+    const resultMonthly = await paymentTransactionModel.getReferensiCodeMonthly(tableMonthly, queryMonthly);
     //from monthly payment
     const queryFree = `WHERE payment_rate_bebas_pay_number LIKE '${code}%' AND payment_rate.student_student_id=${student_id} AND is_submit_payment=1 AND payment_rate_bebas_pay_number IS NOT NULL order by payment_rate_bebas_pay_number DESC`;
-    const resultFree = await paymentTransactionModel.getReferensiCodeFree(
-      queryFree
-    );
+    const resultFree = await paymentTransactionModel.getReferensiCodeFree(queryFree);
     const newFormatResultFree = resultFree.map((item) => ({
       ...item,
       payment_rate_number_pay: item.payment_rate_bebas_pay_number,
@@ -653,38 +503,27 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${
   getPaymentNotSubmitted: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
     //from monthly payment
-    const resultMonthly =
-      await paymentTransactionModel.getMonthlyPaymentNotSubmitted(id);
+    const resultMonthly = await paymentTransactionModel.getMonthlyPaymentNotSubmitted(id);
     //from monthly payment
-    const resultFree = await paymentTransactionModel.getFreePaymentNotSubmitted(
-      id
-    );
+    const resultFree = await paymentTransactionModel.getFreePaymentNotSubmitted(id);
     const newFormatResultFree = resultFree.map((item) => ({
       ...item,
       payment_rate_bill: parseInt(item.payment_rate_bebas_pay_bill),
       payment_rate_number_pay: item.payment_rate_bebas_pay_number,
     }));
-    const concatData = [...resultMonthly, ...newFormatResultFree].map(
-      (item) => ({
-        ...item,
-        payment_rate_bill: parseInt(item.payment_rate_bill),
-      })
-    );
+    const concatData = [...resultMonthly, ...newFormatResultFree].map((item) => ({
+      ...item,
+      payment_rate_bill: parseInt(item.payment_rate_bill),
+    }));
     const newResult = {
       total: concatData.reduce(
-        (accumulator, currentValue) =>
-          accumulator + parseInt(currentValue.payment_rate_bill, 10),
+        (accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10),
         0
       ),
       data_payment: concatData,
     };
 
-    return helpers.response(
-      res,
-      200,
-      "Get Payment Not Submitted berhasil",
-      newResult
-    );
+    return helpers.response(res, 200, "Get Payment Not Submitted berhasil", newResult);
   }),
   // submitAllPayment: promiseHandler(async (req, res, next) => {
   //   const { data_payment } = req.body;
