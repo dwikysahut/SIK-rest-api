@@ -61,9 +61,9 @@ module.exports = {
               (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
             )
             .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) -
-            resultFree.filter(
-              (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
-            )[0]?.payment_rate_discount,
+          resultFree.filter(
+            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
+          )[0]?.payment_rate_discount,
           10
         ),
       })),
@@ -193,7 +193,9 @@ module.exports = {
       class_id || "",
       period_id || ""
     );
-    console.log(resultMonthly);
+    console.log(resultMonthly
+      .filter((item) => item.student_id == 1)
+    );
     console.log(resultFree.filter((item) => item.student_id == 1)[0]?.payment_rate_bebas_pay_remaining);
     const newResult = result.map((student) => ({
       ...student,
@@ -202,7 +204,7 @@ module.exports = {
           .filter((item) => item.student_id == student.student_id)
           ?.reduce((accumulator, currentValue) => accumulator + parseFloat(currentValue.payment_rate_bill, 10), 0) +
         (resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bebas_pay_remaining !==
-        undefined
+          undefined
           ? resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bebas_pay_remaining
           : 0),
     }));
@@ -248,12 +250,12 @@ module.exports = {
   }),
   putMonthlyPaymentById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
-    const { student_student_id, payment_rate_via, payment_rate_number_pay } = req.body;
+    const { student_student_id, payment_rate_via, payment_rate_number_pay, payment_rate_date_pay } = req.body;
     const { token } = req;
     console.log(req.body);
 
     const newBody = {
-      payment_rate_date_pay: moment().format("YYYY-MM-DD  HH:mm:ss.000"),
+      payment_rate_date_pay: payment_rate_date_pay ? payment_rate_date_pay : moment().format("YYYY-MM-DD  HH:mm:ss.000"),
       payment_rate_number_pay,
       payment_rate_via: parseInt(payment_rate_via, 10) || null,
     };
@@ -307,9 +309,11 @@ module.exports = {
       .filter((item) => item.payment_type == "BEBAS")
       .map((item) => item.detail_payment_rate_id);
 
-    const resultDataPaymentWithTotal = await freePaymentModel.getAllDetailFreePaymentTypeByIdPayment(
-      dataPaymentIdFromFree
-    );
+    let resultDataPaymentWithTotal = []
+    if (dataPaymentIdFromFree.length > 0)
+      resultDataPaymentWithTotal = await freePaymentModel.getAllDetailFreePaymentTypeByIdPayment(
+        dataPaymentIdFromFree
+      );
     for (let i = 0; i < resultDataPaymentWithTotal.length; i++) {
       const total = resultDataPaymentWithTotal[i].total_bayar;
       const dataFreePaymentById = await freePaymentModel.getFreePaymentById(
@@ -418,6 +422,7 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${encData.iv}&encrypt
         payment_rate_bebas_pay_bill,
       payment_rate_via: parseInt(payment_rate_via) || null,
       payment_rate_bebas_pay_number,
+      payment_rate_date_pay: payment_rate_date_pay
     };
 
     await freePaymentModel.postDetailFreePayment(formBodyDetail);
@@ -475,6 +480,7 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${encData.iv}&encrypt
     const queryMonthly = `WHERE payment_rate_number_pay LIKE '${code}%' AND payment_rate.student_student_id=${student_id} AND is_submit_payment=1 AND payment_rate_number_pay IS NOT NULL  order by payment_rate_number_pay DESC`;
     const resultMonthly = await paymentTransactionModel.getReferensiCodeMonthly(tableMonthly, queryMonthly);
     //from monthly payment
+    console.log('monthly sih')
     const queryFree = `WHERE payment_rate_bebas_pay_number LIKE '${code}%' AND payment_rate.student_student_id=${student_id} AND is_submit_payment=1 AND payment_rate_bebas_pay_number IS NOT NULL order by payment_rate_bebas_pay_number DESC`;
     const resultFree = await paymentTransactionModel.getReferensiCodeFree(queryFree);
     const newFormatResultFree = resultFree.map((item) => ({
@@ -484,11 +490,14 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${encData.iv}&encrypt
 
     const newResult =
       [...newFormatResultFree, ...resultMonthly].length > 0
-        ? [...newFormatResultFree, ...resultMonthly].sort(
-            (a, b) => b.payment_rate_number_pay - a.payment_rate_number_pay
-          )[0].payment_rate_number_pay
+        ? [...newFormatResultFree, ...resultMonthly].map(item => ({ ...item, number_sort: item.payment_rate_number_pay.substring(item.payment_rate_number_pay.length - 2) })).sort(
+          (a, b) => b.number_sort - a.number_sort
+        )[0].payment_rate_number_pay
         : code + "00";
     const twoLastCode = newResult.substring(newResult.length - 2);
+    console.log([...newFormatResultFree, ...resultMonthly], 'ss')
+    console.log(twoLastCode, 'ss')
+    console.log(twoLastCode, 'ss')
     const newIncrementCode =
       newResult.substring(0, newResult.length - 2) +
       (parseInt(twoLastCode, 10).toString().length < 2
@@ -497,7 +506,7 @@ Detail Pembayaran : ${process.env.REACT_URL}/pembayaran?iv=${encData.iv}&encrypt
 
     return helpers.response(res, 200, "Get Referensi Code berhasil", {
       code: newIncrementCode,
-      resu: [...resultFree, ...resultMonthly],
+      result: [...resultFree, ...resultMonthly],
     });
   }),
   getPaymentNotSubmitted: promiseHandler(async (req, res, next) => {

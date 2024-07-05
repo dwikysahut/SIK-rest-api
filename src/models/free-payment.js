@@ -139,8 +139,23 @@ module.exports = {
   getTagihanFreePaymentAllStudentWithDate: (unitId, classId, periodId, tanggal_awal, tanggal_akhir) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT detail_payment_rate_bebas_pay.*,unit.unit_name, student.*, class.class_name FROM detail_payment_rate_bebas_pay LEFT JOIN detail_payment_rate_bebas ON detail_payment_rate_bebas.detail_payment_rate_id=detail_payment_rate_bebas_pay.detail_payment_rate_id LEFT JOIN payment_rate ON detail_payment_rate_bebas.payment_rate_id=payment_rate.payment_rate_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN student ON student.student_id=payment_rate.student_student_id LEFT JOIN class on class.class_id=student.class_class_id   LEFT JOIN unit ON unit.unit_id = student.unit_unit_id  LEFT JOIN period ON period.period_id=payment.period_period_id WHERE payment_rate_status=0 AND student.unit_unit_id=? ${classId !== "" ? `and class.class_id=${classId}` : ""
+        `SELECT detail_payment_rate_bebas_pay.*,unit.unit_name, student.*,payment_rate.*, class.class_name FROM detail_payment_rate_bebas_pay LEFT JOIN detail_payment_rate_bebas ON detail_payment_rate_bebas.detail_payment_rate_id=detail_payment_rate_bebas_pay.detail_payment_rate_id LEFT JOIN payment_rate ON detail_payment_rate_bebas.payment_rate_id=payment_rate.payment_rate_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN student ON student.student_id=payment_rate.student_student_id LEFT JOIN class on class.class_id=student.class_class_id   LEFT JOIN unit ON unit.unit_id = student.unit_unit_id  LEFT JOIN period ON period.period_id=payment.period_period_id WHERE payment_rate_status=0 AND student.unit_unit_id=? ${classId !== "" ? `and class.class_id=${classId}` : ""
         } AND period.period_id=? AND DATE(payment_rate_bebas_pay_created_at) BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}' ORDER BY payment_rate_bebas_pay_created_at DESC `,
+        [unitId, periodId],
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
+  getAllFreePaymentAllStudent: (unitId, classId, periodId, tanggal_awal, tanggal_akhir) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT detail_payment_rate_bebas_pay.*,unit.unit_name, student.*, class.class_name FROM detail_payment_rate_bebas_pay LEFT JOIN detail_payment_rate_bebas ON detail_payment_rate_bebas.detail_payment_rate_id=detail_payment_rate_bebas_pay.detail_payment_rate_id LEFT JOIN payment_rate ON detail_payment_rate_bebas.payment_rate_id=payment_rate.payment_rate_id LEFT JOIN payment on payment.payment_id=payment_rate.payment_payment_id LEFT JOIN student ON student.student_id=payment_rate.student_student_id LEFT JOIN class on class.class_id=student.class_class_id   LEFT JOIN unit ON unit.unit_id = student.unit_unit_id  LEFT JOIN period ON period.period_id=payment.period_period_id WHERE payment_rate_status=0 AND student.unit_unit_id=? ${classId !== "" ? `and class.class_id=${classId}` : ""
+        } AND period.period_id=? ORDER BY payment_rate_bebas_pay_created_at DESC `,
         [unitId, periodId],
         (error, result) => {
           if (!error) {

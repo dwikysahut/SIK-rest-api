@@ -29,8 +29,9 @@ module.exports = {
 
     const result = await paymentRateModel.getAllPaymentRateByPayment(query);
     const resultIds = result.map((item) => item.payment_rate_id).join(",");
-
-    const detailQuery = `payment_rate_id IN(${resultIds})`;
+    console.log('ini')
+    console.log(resultIds)
+    const detailQuery = resultIds.length ? ` where payment_rate_id IN(${resultIds})` : '';
     let detailResult;
     if (payment_type == "BULANAN") {
       detailResult =
@@ -307,14 +308,14 @@ module.exports = {
     }
     const monthObj = JSON.parse(month);
     let monthArr = [];
-    for (let key in monthObj) {
-      monthArr.push(monthObj[key]);
+    for (let key in monthObj.month_change) {
+      monthArr.push(monthObj.month_change[key]);
     }
     const monthString = monthArr.join(",");
     const paymentRateId = getPaymentRateId
       .map((item) => item.payment_rate_id)
       .join(",");
-    const detailFilter = `payment_rate_id IN (${paymentRateId}) AND payment_rate_bill=${payment_old} AND month_month_id IN (${monthString})`;
+    const detailFilter = `where payment_rate_id IN (${paymentRateId}) AND payment_rate_bill=${payment_old} AND month_month_id IN (${monthString})`;
 
     const getDetailPayments =
       await detailPaymentRateModel.getAllDetailMonthlyPaymentRateByFilter(
@@ -352,7 +353,7 @@ module.exports = {
       .map((item) => item.payment_rate_id)
       .join(",");
 
-    const detailFilter = `payment_rate_id IN (${paymentRateId}) AND payment_rate_bill=${payment_old}`;
+    const detailFilter = `where payment_rate_id IN (${paymentRateId}) AND payment_rate_bill=${payment_old}`;
     const getDetailPayments =
       await detailPaymentRateModel.getAllDetailFreePaymentRateByFilter(
         detailFilter

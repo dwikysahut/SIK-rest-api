@@ -17,6 +17,22 @@ module.exports = {
         }
       );
     }),
+  getAllPaymentTransactionStudents: ({ period_start, period_end }) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT view_payment.*,view_payment_rate.*,unit.unit_name FROM view_payment INNER JOIN view_payment_rate ON view_payment.payment_id=view_payment_rate.payment_payment_id INNER JOIN unit ON view_payment.unit_unit_id=unit.unit_id WHERE  (view_payment.period_start like '%${[
+          period_start,
+        ]}%' AND view_payment.period_end LIKE '%${period_end}%')`,
+        id,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
   getFreePaymentNotSubmitted: (id) =>
     new Promise((resolve, reject) =>
       connection.query(

@@ -26,6 +26,18 @@ module.exports = {
         }
       );
     }),
+  getPaymentTypeByIds: (ids) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT view_payment.*,payment_rate.* FROM view_payment INNER JOIN payment_rate ON payment_rate.payment_payment_id=view_payment.payment_id ${ids !== '' ? `where payment_id IN (${ids})` : ''}`,
+        (error, result) => {
+          if (!error) {
+            return resolve(result);
+          }
+          return reject(error);
+        }
+      );
+    }),
 
   postPaymentType: (setData) =>
     new Promise((resolve, reject) => {

@@ -104,7 +104,7 @@ module.exports = {
       "VALUE_TOTAL_TAGIHAN_SISWA_LALU",
       rupiahConvert(datas.previous_billing.total_bill)
     );
-    html=html.replace("VALUE_TOTAL",rupiahConvert(datas.previous_billing.total_bill+datas.current_billing.total_bill))
+    html = html.replace("VALUE_TOTAL", rupiahConvert(datas.previous_billing.total_bill + datas.current_billing.total_bill))
     html = html.replace(
       "VALUE_TANGGAL_DOKUMEN",
       `Depok, ${moment().locale("id").format("DD MMMM YYYY")}`
@@ -133,6 +133,7 @@ module.exports = {
     );
     let tableRows = "";
     datas.payment.forEach((data, index) => {
+      console.log(data)
       tableRows += tableKwitansiPembayaran(data, index, datas);
     });
     html = html.replace("VALUE_TABEL_PEMBAYARAN", tableRows);

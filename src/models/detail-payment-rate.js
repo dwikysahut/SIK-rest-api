@@ -30,7 +30,7 @@ module.exports = {
   getAllDetailMonthlyPaymentRateByFilter: (filter) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT detail_payment_rate_bulan.* from detail_payment_rate_bulan where ${filter}`,
+        `SELECT detail_payment_rate_bulan.* from detail_payment_rate_bulan ${filter}`,
         (err, result) => {
           if (!err) {
             resolve(result);
@@ -42,7 +42,7 @@ module.exports = {
   getAllDetailFreePaymentRateByFilter: (filter) =>
     new Promise((resolve, reject) => {
       connection.query(
-        `SELECT detail_payment_rate_bebas.* from detail_payment_rate_bebas where ${filter}`,
+        `SELECT detail_payment_rate_bebas.* from detail_payment_rate_bebas  ${filter}`,
         (err, result) => {
           if (!err) {
             resolve(result);
