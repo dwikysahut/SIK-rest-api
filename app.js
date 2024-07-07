@@ -9,11 +9,10 @@ const routeNavigator = require("./src/routes");
 const app = express();
 require("dotenv").config();
 
-const server = app.listen(process.env.PORT, process.env.HOST_LOCAL, () => {
+const server = app.listen(process.env.PORT, process.env.NODE_ENV === 'production' ? process.env.HOST_DEPLOY : process.env.HOST_LOCAL, () => {
   console.log(
     "\x1b[33m%s\x1b[0m",
-    `server running at http://${process.env.HOST_LOCAL}: ${
-      server.address().port
+    `server running at http://${process.env.HOST_LOCAL}: ${server.address().port
     }`
   );
 });
