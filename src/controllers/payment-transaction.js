@@ -310,6 +310,7 @@ module.exports = {
       .map((item) => item.detail_payment_rate_id);
 
     let resultDataPaymentWithTotal = []
+    console.log(dataPaymentIdFromFree)
     if (dataPaymentIdFromFree.length > 0)
       resultDataPaymentWithTotal = await freePaymentModel.getAllDetailFreePaymentTypeByIdPayment(
         dataPaymentIdFromFree
