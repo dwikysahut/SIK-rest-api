@@ -12,7 +12,7 @@ module.exports = {
   }),
 
   getTahunAjaranById: (id) => new Promise((resolve, reject) => {
-    connection.query('SELECT * FROM period where period_id=?', id, (error, result) => {
+    connection.query('SELECT * FROM period where period_id=?', [id], (error, result) => {
       if (!error) {
         resolve(result[0]);
       } else {

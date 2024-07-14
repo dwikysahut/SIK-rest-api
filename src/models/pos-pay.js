@@ -34,7 +34,7 @@ DESC
     new Promise((resolve, reject) => {
       connection.query(
         "SELECT * FROM pos_pay where pos_pay_id=?",
-        id,
+        [id],
         (error, result) => {
           if (!error) {
             return resolve(result[0]);

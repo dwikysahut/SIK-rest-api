@@ -78,7 +78,6 @@ module.exports = {
     queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
     const queryToString = helpers.queryToString(queryFormat);
 
-    const resultSiswa = await siswaModel.getAllSiswa(queryToString);
     const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPosWithDate(
       unit_id,
       class_id,
@@ -138,7 +137,9 @@ module.exports = {
     const regex = /,\s*$/;
 
     const paymentTypeResult = await paymentTypeModel.getPaymentTypeByIds(allIds.join(',').replace(regex, '' ?? ''))
-    console.log(paymentTypeResult)
+    console.log(resultMonthly
+      .filter((item) => item.student_id == 1 && item.payment_payment_id == 91))
+    console.log('masuk')
     const newResult = result.map((student) => ({
       ...student,
       total_tagihan:
@@ -174,6 +175,7 @@ module.exports = {
     // untuk penyesuaian query di sql
     queryFormat.class_class_id = class_id == "" || class_id == undefined ? "" : class_id;
     queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
+    const queryToString = helpers.queryToString(queryFormat);
 
     const resultSiswa = await studentModel.getAllSiswa(queryToString);
 
@@ -188,63 +190,72 @@ module.exports = {
       class_id || "",
       period_id || "",
     );
-    const monthlyPaymentType = await monthlyPaymentModel.getMonthlyPaymentTypeByStudent(id);
-    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(id);
+    const resultFreeSortRemaining = resultFree.sort((a, b) => b.payment_rate_bebas_pay_remaining - a.payment_rate_bebas_pay_remaining)
 
-    const freeType = {
-      free_type: freePaymentType.map((item) => ({
-        ...item,
-        sisa_tagihan:
-          resultFree.filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
-          )[0]?.payment_rate_bill -
-          resultFree.filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
-          )[0]?.payment_rate_discount -
-          resultFree.filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
-          )[0]?.payment_rate_total_pay,
-        ...resultFree
-          .filter((itemFree) => item.payment_rate_id === itemFree.payment_rate_id)
-          .map((item) => ({
-            ...item,
-            payment_rate_bill: parseInt(item.payment_rate_bill),
-          }))[0],
-        sisa_tagihan_diskon: parseInt(
-          resultFree
-            .filter(
-              (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
-            )
-            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) -
-          resultFree.filter(
-            (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
-          )[0]?.payment_rate_discount,
-          10
-        ),
-      })),
-    };
+    const ids = resultSiswa.map(item => item.student_id).join(',');
+    const monthlyPaymentType = await monthlyPaymentModel.getMonthlyPaymentTypeAllStudentByPaymentQuery(ids);
+    const freePaymentType = await freePaymentModel.getFreePaymentTypeByStudent(ids);
+    // console.log(resu)
+    const filterByMonthType = monthlyPaymentType.map(item => ({ ...item, detail: resultMonthly.filter(itemMonthly => itemMonthly.payment_rate_id == item.payment_rate_id) }));
+    const filterByFreeType = freePaymentType.map(item => ({ ...item, detail: resultFreeSortRemaining.filter(itemFree => itemFree.payment_rate_id == item.payment_rate_id) }));
+    console.log(filterByMonthType)
 
-    const newResult = {
-      ...resultSiswa,
-      ...resultPayment,
-      monthly_type: monthlyPaymentType.map((item) => ({
-        ...item,
-        sisa_tagihan: resultMonthly
-          .filter(
-            (itemMonthly) =>
-              item.payment_rate_id === itemMonthly.payment_rate_id && itemMonthly.payment_rate_status == 0
-          )
-          .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0),
-        monthly_payment: resultMonthly
-          .filter((itemMonthly) => item.payment_rate_id === itemMonthly.payment_rate_id)
-          .map((item) => ({
-            ...item,
-            payment_rate_bill: parseInt(item.payment_rate_bill),
-          })),
-      })),
-      ...freeType,
-    };
+    const resultWithStudent = resultSiswa.map(item => ({ ...item, payment_type: [...filterByMonthType, ...filterByFreeType].filter(itemFilter => itemFilter.student_student_id == item.student_id) }))
+    // const freeType = {
+    //   free_type: freePaymentType.map((item) => ({
+    //     ...item,
+    //     sisa_tagihan:
+    //       resultFree.filter(
+    //         (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
+    //       )[0]?.payment_rate_bill -
+    //       resultFree.filter(
+    //         (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
+    //       )[0]?.payment_rate_discount -
+    //       resultFree.filter(
+    //         (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
+    //       )[0]?.payment_rate_total_pay,
+    //     ...resultFree
+    //       .filter((itemFree) => item.payment_rate_id === itemFree.payment_rate_id)
+    //       .map((item) => ({
+    //         ...item,
+    //         payment_rate_bill: parseInt(item.payment_rate_bill),
+    //       }))[0],
+    //     sisa_tagihan_diskon: parseInt(
+    //       resultFree
+    //         .filter(
+    //           (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
+    //         )
+    //         .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) -
+    //       resultFree.filter(
+    //         (itemFree) => item.payment_rate_id === itemFree.payment_rate_id && itemFree.payment_rate_status == 0
+    //       )[0]?.payment_rate_discount,
+    //       10
+    //     ),
+    //   })),
+    // };
 
-    return helpers.response(res, 200, "Get Pembayaran siswa berhasil", newResult);
-  })
+    // const newResult = {
+    //   ...resultSiswa,
+    //   ...resultPayment,
+    //   monthly_type: monthlyPaymentType.map((item) => ({
+    //     ...item,
+    //     sisa_tagihan: resultMonthly
+    //       .filter(
+    //         (itemMonthly) =>
+    //           item.payment_rate_id === itemMonthly.payment_rate_id && itemMonthly.payment_rate_status == 0
+    //       )
+    //       .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0),
+    //     monthly_payment: resultMonthly
+    //       .filter((itemMonthly) => item.payment_rate_id === itemMonthly.payment_rate_id)
+    //       .map((item) => ({
+    //         ...item,
+    //         payment_rate_bill: parseInt(item.payment_rate_bill),
+    //       })),
+    //   })),
+    //   ...freeType,
+    // };
+
+    return helpers.response(res, 200, "Get Pembayaran siswa berhasil", resultWithStudent);
+  }),
+
 };

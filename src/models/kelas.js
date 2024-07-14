@@ -32,7 +32,7 @@ module.exports = {
     new Promise((resolve, reject) => {
       connection.query(
         "SELECT * FROM class where class_id=?",
-        id,
+        [id],
         (error, result) => {
           if (!error) {
             resolve(result[0]);

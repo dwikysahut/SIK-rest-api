@@ -6,6 +6,7 @@ const {
   generateKwitansiPembayaran,
   generateKredit,
   generateDebit,
+  generateDokumenLaporanPerKelas,
 } = require("../middleware/documentService");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const monthlyPaymentModel = require("../models/monthly-payment");
@@ -16,7 +17,11 @@ const kreditModel = require("../models/kredit");
 const debitModel = require("../models/debit");
 const tahunAjaranModel = require("../models/tahun-ajaran");
 const studentModel = require("../models/siswa");
+const unitModel = require("../models/unit");
+const classModel = require("../models/kelas");
+const paymentTypeModel = require("../models/payment-type");
 const { decryptData, encryptData } = require("../utils/encrypt");
+const posPayModel = require("../models/pos-pay");
 module.exports = {
   getDokumenTagihanPembayaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -405,5 +410,138 @@ module.exports = {
       "Get dokumen rincian pembayaran berhasil",
       result
     );
+  }),
+
+  //dokumen laporan
+  dokumenlaporanPembayaranPerKelas: promiseHandler(async (req, res, next) => {
+    const { unit_id, class_id, period_id, payment_type } = req.query;
+    const posPayType = await posPayModel.getPosPayById(payment_type)
+    const periodResult = await tahunAjaranModel.getTahunAjaranById(period_id)
+    const unitResult = await unitModel.getUnitById(unit_id)
+    let classResult = null;
+    if (class_id !== '')
+      classResult = await classModel.getKelasById(class_id)
+    const queryFormat = {};
+    console.log(class_id);
+    // untuk penyesuaian query di sql
+    queryFormat.class_class_id = class_id == "" || class_id == undefined ? "" : class_id;
+    queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
+    const queryToString = helpers.queryToString(queryFormat);
+
+    const resultSiswa = await studentModel.getAllSiswa(queryToString);
+    console.log(queryFormat)
+    const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPos(
+      unit_id,
+      class_id,
+      period_id,
+      payment_type
+    );
+    const resultFree = await freePaymentModel.getTagihanFreePaymentAllStudentByPos(
+      unit_id,
+      class_id,
+      period_id,
+      payment_type
+    );
+
+    // const total = [...resultFree, ...resultMonthly].reduce(
+    //   (accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10),
+    //   0
+    // );
+    const newResult = {
+      tahun_ajaran: `${periodResult.period_start}/${periodResult.period_end}`,
+      title: `Laporan Pembayaran ${posPayType.pos_pay_name} ${unitResult.unit_name}`,
+      class: classResult?.class_name ?? 'Semua',
+      students: resultSiswa.map((student) => ({
+        ...student,
+        total_tagihan:
+          (parseInt(resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bill, 10) || 0) +
+          (resultMonthly
+            .filter((item) => item.student_id == student.student_id)
+            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) || 0),
+        result_free: (parseInt(resultFree.filter((item) => item.student_student_id == student.student_id)[0]?.payment_rate_bill, 10) || 0),
+        result_month: resultMonthly
+          .filter((item) => item.student_id == student.student_id)
+          .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0),
+
+        sisa_tagihan:
+          (parseInt(
+            resultFree.filter((item) => item.student_id == student.student_id)[0]
+              ?.payment_rate_bebas_pay_remaining,
+            10
+          ) || 0) +
+          (resultMonthly
+            .filter((item) => item.student_id == student.student_id && item.payment_rate_status == 0)
+            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) || 0),
+        sudah_dibayar:
+          (parseInt(resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bill, 10) || 0) -
+          (parseInt(
+            resultFree.filter((item) => item.student_id == student.student_id)[0]
+              ?.payment_rate_bebas_pay_remaining,
+            10
+          ) || 0) +
+          (resultMonthly
+            .filter((item) => item.student_id == student.student_id && item.payment_rate_status == 1)
+            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) || 0),
+      }))
+    };
+    const result = await generateDokumenLaporanPerKelas(
+      "../assets/pdfTemplate/laporan/pembayaran-per-kelas.html",
+      newResult
+    );
+    return helpers.response(res, 200, "GET Data Laporan pembayaran per kelas berhasil", result);
+  }),
+  dokumenlaporanPembayaranPerTanggal: promiseHandler(async (req, res, next) => {
+    const { unit_id, class_id, period_id, payment_type, tanggal_awal, tanggal_akhir } = req.query;
+    const queryFormat = {};
+    // untuk penyesuaian query di sql
+    const posPayType = await posPayModel.getPosPayById(payment_type)
+    const periodResult = await tahunAjaranModel.getTahunAjaranById(period_id)
+    const unitResult = await unitModel.getUnitById(unit_id)
+    let classResult = null;
+    if (class_id !== '')
+      classResult = await classModel.getKelasById(class_id)
+    queryFormat.class_class_id = class_id == "" || class_id == undefined ? "" : class_id;
+    queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
+    // const queryToString = helpers.queryToString(queryFormat);
+
+    const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPosWithDate(
+      unit_id,
+      class_id,
+      period_id,
+      tanggal_awal, tanggal_akhir
+    );
+    console.log(resultMonthly)
+    const resultFree = await freePaymentModel.getTagihanFreePaymentAllStudentByPosWithDate(
+      unit_id,
+      class_id,
+      period_id,
+      tanggal_awal, tanggal_akhir
+    );
+    const query = `WHERE unit_unit_id=${unit_id} && period_period_id=${period_id}`
+    const resultPaymentType = await paymentTypeModel.getAllPaymentType(query);
+
+    const newResultPayment = {
+      tahun_ajaran: `${periodResult.period_start}/${periodResult.period_end}`,
+      title: `Laporan Pembayaran Tanggal ${tanggal_awal} s/d ${tanggal_akhir} `,
+      class: classResult?.class_name ?? 'Semua',
+      tanggal_akhir,
+      tanggal_awal,
+      payment_type: resultPaymentType.map(item => ({
+        ...item, payment: [...resultMonthly.filter(itemMonthly => item.payment_id == itemMonthly.payment_id), ...resultFree.filter(itemFree => item.payment_id == itemFree.payment_id)], total: (resultFree.filter(itemFree => item.payment_id == itemFree.payment_id).reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseFloat(currentValue.payment_rate_bebas_pay_bill, 10),
+          0
+        ) || 0) + (resultMonthly.filter(itemFree => item.payment_id == itemFree.payment_id).reduce(
+          (accumulator, currentValue) =>
+            accumulator + parseFloat(currentValue.payment_rate_bill, 10),
+          0
+        ) || 0),
+      }))
+    }
+    const result = await generateDokumenLaporanPerKelas(
+      "../assets/pdfTemplate/laporan/pembayaran-per-tanggal.html",
+      newResultPayment
+    );
+    return helpers.response(res, 200, "GET Data Laporan pembayaran per kelas berhasil", result);
   }),
 };

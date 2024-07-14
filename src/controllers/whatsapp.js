@@ -12,6 +12,8 @@ module.exports = {
   postMessage: promiseHandler(async (req, res, next) => {
     const { students } = req.body;
     const key = process.env.WOOWA_KEY;
+    console.log('dadadada')
+    console.log(students)
 
     try {
       for (let i = 0; i < students.length; i++) {
@@ -28,15 +30,14 @@ module.exports = {
             
 Nama   :  ${students[i].student_full_name}
 NIS    :  ${students[i].student_nis}
-Kelas  :  ${students[i].class_name}
+Kelas  :  ${students[i].class_class_name}
             
 Memiliki tagihan sebesar Rp. ${helpers.rupiahConvert(
               parseInt(students[i].total_tagihan)
             )}
 
-Detail tagihan : ${process.env.REACT_URL}/tagihan?iv=${
-              encData.iv
-            }&encryptedData=${encData.encryptedData}
+Detail tagihan : ${process.env.REACT_URL}/tagihan?iv=${encData.iv
+              }&encryptedData=${encData.encryptedData}
 
 *) Silahkan simpan nomor ini jika link tidak aktif.
              `,

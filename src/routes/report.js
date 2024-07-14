@@ -16,5 +16,9 @@ Route
   .get(
     "/tagihan-siswa",
     authentication, reportController.laporanTagihanSiswa
+  )
+  .get(
+    "/rekap-pembayaran",
+    authentication, reportController.laporanRekapPembayaran
   );
 module.exports = Route;

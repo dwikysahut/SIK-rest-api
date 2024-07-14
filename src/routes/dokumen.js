@@ -19,6 +19,14 @@ Route.get(
   .get(
     "/public/bukti-pembayaran",
     dokumenController.getPublicDokumenBuktiPembayaran
+  )
+  .get(
+    "/report/pembayaran-per-kelas",
+    dokumenController.dokumenlaporanPembayaranPerKelas
+  )
+  .get(
+    "/report/pembayaran-per-tanggal",
+    dokumenController.dokumenlaporanPembayaranPerTanggal
   );
 
 module.exports = Route;

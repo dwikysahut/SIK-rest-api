@@ -11,6 +11,16 @@ module.exports = {
         }
       });
     }),
+  getUnitById: (id) =>
+    new Promise((resolve, reject) => {
+      connection.query("SELECT * from unit WHERE unit_id=?", [id], (error, result) => {
+        if (!error) {
+          resolve(result[0]);
+        } else {
+          reject(error);
+        }
+      });
+    }),
   getUnitByUser: (id) =>
     new Promise((resolve, reject) => {
       connection.query(

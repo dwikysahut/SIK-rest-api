@@ -1,4 +1,5 @@
 const { dateConvert, rupiahConvert } = require("../../helpers");
+const moment = require("moment");
 
 module.exports = {
   tableHtmlRincianPembayaran: function (data, index, datas) {
@@ -73,44 +74,55 @@ module.exports = {
     )}</td>
 
 </tr>`,
+  tableLaporanPerKelas: (data, index, datas) => `  <tr>
+  <td style="font-size: 11px;">${index + 1}</td>
+  <td style="font-size: 11px;">${data.student_nis}</td>
+  <td style="font-size: 11px;">${data.student_full_name}</td>
+  <td style="font-size: 11px;">${rupiahConvert(data.total_tagihan)}</td>
+  <td style="font-size: 11px;">${rupiahConvert(data.sudah_dibayar)}</td>
+  <td style="font-size: 11px;">${rupiahConvert(data.sisa_tagihan)}</td>
+  <td style="font-size: 11px;">${data.sisa_tagihan == 0 ? 'Lunas' : 'Belum Lunas'}</td>
+</tr>`,
+  headerTableLaporanPerTanggal: (title) => `
+  <h3>${title}</h3>
 
-  tableLaporanPerTanggal: () => `
-<section style="display: flex; flex-direction: column;">
-<table>
-    <thead>
-        <th>NO.</th>
-        <th>NIS</th>
-        <th>NAMA SISWA</th>
-        <th>TAGIHAN</th>
-        <th>SUDAH BAYAR</th>
-        <th>KEKURANGAN</th>
-        <th>KETERANGAN</th>
-    </thead>
+ <table style="border: none;">
+            <thead>
+                <th style="font-size: 12px;">NO.</th>
+                <th style="font-size: 12px;">TANGGAL</th>
+                <th style="font-size: 12px;">NIS</th>
+                <th style="font-size: 12px;">NAMA SISWA</th>
+                <th style="font-size: 12px;">NOMINAL</th>
+                <th style="font-size: 12px;">KETERANGAN</th>
+            </thead>
     <tbody>
-        VALUE_TABEL_PEMBAYARAN_PER_TANGGAL
-    </tbody>
-</table>
-<div style="width: 100%; align-self: flex-end; margin-top: 1rem;background-color: lightgray;">
-    <div style="display: flex;">
-        <p style="flex: 1;"><strong>TOTAL PEMBAYARAN SISWA</strong></p>
-        <p style="flex:1;"><strong>VALUE_TOTAL_PEMBAYARAN_SISWA</strong></p>
-
-    </div>
-
-</div>
-</section>
-
-
-<section
-style="margin-top: 3rem; padding-inline: 2rem; display: flex; justify-content: flex-end; align-items: flex-end; flex-direction: column;">
-<div style="flex: 1; justify-self: flex-end;">
-
-    <p>VALUE_TANGGAL_DOKUMEN</p>
-    <p>Bendahara</p>
-    <p style="margin-top: 3rem;">
-        <strong>TOMY HARIANTO</strong>
-    </p>
-    <p>NIP. VALUE_NIP</p>
-</div>
-</section>`,
+           
+       `,
+  tableLaporanPerTanggal: (index, data, datas) => `
+    <tr>
+    <td style="font-size: 11px;">${index + 1}</td>
+    <td style="font-size: 11px;">${data.payment_rate_date_pay
+      ? moment(data.payment_rate_date_pay).format('YYYY-MM-DD')
+      : moment(data.payment_rate_bebas_pay_created_at).format(
+        'YYYY-MM-DD'
+      )}</td>
+    <td style="font-size: 11px;">${data.student_nis}</td>
+    <td style="font-size: 11px;">${data.student_full_name}</td>
+    <td style="font-size: 11px;">${rupiahConvert(data.payment_rate_bebas_pay_bill ||
+        parseInt(data.payment_rate_bill, 10))}</td>
+    <td style="font-size: 11px;">${data.payment_rate_bebas_pay_desc ?? data.month_name}</td>
+  </tr>
+   
+`,
+  footerTableLaporanPerTanggal: (datas) => `
+  </tbody>
+  </table>
+  <div style="width: 100%; align-self: flex-end; margin-top: 1rem;margin-bottom:2rem;background-color: lightgray;">
+      <div style="display: flex;">
+          <p style="flex: 1;"><strong>TOTAL PEMBAYARAN SISWA</strong></p>
+          <p style="flex:1;"><strong>${datas.total}</strong></p>
+      </div>
+  </div>
+   
+`,
 };

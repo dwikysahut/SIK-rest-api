@@ -10,6 +10,10 @@ const {
   tableKwitansiPembayaran,
   tableKasKredit,
   tableKasDebit,
+  tableLaporanPerKelas,
+  headerTableLaporanPerTanggal,
+  tableLaporanPerTanggal,
+  footerTableLaporanPerTanggal,
 } = require("../assets/htmlTemplate");
 module.exports = {
   pdfGenerate: async function (htmlFile, opts = {}) {
@@ -224,4 +228,42 @@ module.exports = {
     const buffer = await module.exports.pdfGenerate(html);
     return buffer;
   },
+
+  generateDokumenLaporanPerKelas: async function (htmlFileUrl, datas) {
+    //baca file
+    let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
+
+    html = html.replace(
+      "VALUE_TAHUN_AJARAN",
+      `${datas.tahun_ajaran}`
+    );
+    html = html.replace(
+      "VALUE_TITLE_DOKUMEN",
+      datas.title
+    );
+    html = html.replace(
+      "VALUE_KELAS",
+      `${datas.class}`
+    );
+
+    html = html.replace(
+      "VALUE_TANGGAL_DOKUMEN",
+      `Depok, ${moment().locale("id").format("DD MMMM YYYY")}`
+    );
+    html = html.replace("VALUE_NIP", "");
+    let tableRows = "";
+    datas.payment_type.forEach((data, index) => {
+      tableRows += headerTableLaporanPerTanggal(`${data.pos_pay_name} T.A ${data.period_start}/${data.period_end}`);
+      data.payment?.forEach((dataPayment, index) => {
+        tableRows += tableLaporanPerTanggal(index, dataPayment, data)
+      })
+      tableRows += footerTableLaporanPerTanggal(data)
+    });
+    html = html.replace("VALUE_TABEL_PEMBAYARAN_PER_TANGGAL", tableRows);
+    html = html.replace("VALUE_TOTAL_KESELURUHAN", rupiahConvert(datas.payment_type?.reduce((accumulator, currentValue) => accumulator + currentValue.total, 0)));
+
+    const buffer = await module.exports.pdfGenerate(html);
+    return buffer;
+  },
+
 };
