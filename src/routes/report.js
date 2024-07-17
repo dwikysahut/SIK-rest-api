@@ -20,5 +20,13 @@ Route
   .get(
     "/rekap-pembayaran",
     authentication, reportController.laporanRekapPembayaran
+  )
+  .get(
+    "/kas-bank",
+    authentication, reportController.laporanKasBank
+  )
+  .get(
+    "/kas-tunai",
+    authentication, reportController.laporanKasTunai
   );
 module.exports = Route;

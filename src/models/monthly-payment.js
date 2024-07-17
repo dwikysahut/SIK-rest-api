@@ -71,6 +71,43 @@ module.exports = {
         }
       );
     }),
+  getKasMonthlyPaymentAllStudent: (isPrev = false, accountId, tanggal_awal, tanggal_akhir, periodId, unitId) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT 
+        detail_payment_rate_bulan.*,
+        student.*,
+        class.class_name,
+        accountBayar.account_description AS payment_rate_via_name,
+        accountBiaya.*,
+        detail_payment_rate_bulan.payment_rate_bill AS total,
+        month.month_name 
+    FROM 
+        detail_payment_rate_bulan
+        INNER JOIN payment_rate ON payment_rate.payment_rate_id = detail_payment_rate_bulan.payment_rate_id
+        INNER JOIN month ON month.month_id = detail_payment_rate_bulan.month_month_id
+        INNER JOIN payment ON payment.payment_id = payment_rate.payment_payment_id
+        INNER JOIN student ON student.student_id = payment_rate.student_student_id
+        INNER JOIN class ON student.class_class_id = class.class_id
+        INNER JOIN pos_pay ON payment.pos_pos_id = pos_pay.pos_pay_id
+        INNER JOIN account accountBiaya ON pos_pay.account_account_code = accountBiaya.account_code
+        LEFT JOIN account accountBayar ON accountBayar.account_id = detail_payment_rate_bulan.payment_rate_via
+    WHERE 
+        payment_rate_status = 1 
+        AND accountBayar.account_code = '${accountId}' 
+        AND detail_payment_rate_bulan.payment_rate_date_pay ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`}  
+        AND payment.period_period_id = ${periodId} 
+        ${unitId && `AND payment.unit_unit_id = ${unitId}`} 
+   `,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(new Error(error));
+          }
+        }
+      );
+    }),
   getTagihanMonthlyPaymentByStudent: (id) =>
     new Promise((resolve, reject) => {
       connection.query(

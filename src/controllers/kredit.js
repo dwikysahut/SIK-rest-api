@@ -10,7 +10,7 @@ module.exports = {
     const { unit_unit_id } = req.query || "";
 
     const result = await kreditModel.getAllKreditSubmitted(unit_unit_id);
-    return helpers.response(res, 200, "Get All Kelas Successfully", result);
+    return helpers.response(res, 200, "Get All Kredit Successfully", result);
   }),
   getKelasById: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -19,7 +19,7 @@ module.exports = {
       return next(customErrorApi(404, "ID Not Found"));
     }
 
-    return helpers.response(res, 200, "Get Kelas By ID Successfully", result);
+    return helpers.response(res, 200, "Get Kredit By ID Successfully", result);
   }),
   getKelasByProdi: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -136,9 +136,8 @@ module.exports = {
       formBody
     );
     const setDataLog = {
-      description: `${
-        token.user_full_name
-      } Melakukan Submit Kas Keluar dengan ID ${kredit_ids.join(",")}`,
+      description: `${token.user_full_name
+        } Melakukan Submit Kas Keluar dengan ID ${kredit_ids.join(",")}`,
       user_user_id: token.user_id ?? null,
     };
     console.log(token);

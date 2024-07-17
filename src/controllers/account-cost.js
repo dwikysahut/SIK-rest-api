@@ -27,10 +27,9 @@ module.exports = {
   getAllAccountCostPay: promiseHandler(async (req, res, next) => {
     const { unit_unit_id } = req.query;
     const query = `WHERE account_category=1 
-      ${
-        unit_unit_id == undefined || unit_unit_id == ""
-          ? ""
-          : `AND account.unit_unit_id=${unit_unit_id}`
+      ${unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `AND account.unit_unit_id=${unit_unit_id}`
       }`;
     const result = await accountCostModel.getAllAccountCostPosBayar(query);
     console.log(result);
@@ -42,13 +41,28 @@ module.exports = {
     );
   }),
   //get all account dengan awalan 5 /biaya
-  getAllAccountJenisBiaya: promiseHandler(async (req, res, next) => {
+  getAllAccountJenisBiayaKeluar: promiseHandler(async (req, res, next) => {
     const { unit_unit_id } = req.query;
     const query = `WHERE account_code LIKE '5-50%' AND account_type=2 
-      ${
-        unit_unit_id == undefined || unit_unit_id == ""
-          ? ""
-          : `AND account.unit_unit_id=${unit_unit_id}`
+      ${unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `AND account.unit_unit_id=${unit_unit_id}`
+      }`;
+    const result = await accountCostModel.getAllAccountCost(query);
+    console.log(result);
+    return helpers.response(
+      res,
+      200,
+      "get All Account Jenis Biaya Successfully",
+      result
+    );
+  }),
+  getAllAccountJenisBiayaMasuk: promiseHandler(async (req, res, next) => {
+    const { unit_unit_id } = req.query;
+    const query = `WHERE account_code LIKE '4-40%' AND account_type=2 
+      ${unit_unit_id == undefined || unit_unit_id == ""
+        ? ""
+        : `AND account.unit_unit_id=${unit_unit_id}`
       }`;
     const result = await accountCostModel.getAllAccountCost(query);
     console.log(result);
@@ -96,21 +110,19 @@ module.exports = {
       const checkDataFilter =
         account_type == 1
           ? checkData.filter(
-              (item) =>
-                parseInt(item.account_code.split("-")[1], 10) % 100 === 0
-            )
+            (item) =>
+              parseInt(item.account_code.split("-")[1], 10) % 100 === 0
+          )
           : checkData;
       console.log(checkDataFilter);
       const lastNumber =
         checkDataFilter[checkDataFilter.length - 1]?.account_code || 0;
       const newCode =
         account_type == 1
-          ? `${lastNumber.split("-")[0]}-${
-              parseInt(lastNumber.split("-")[1], 10) + 100
-            }`
-          : `${lastNumber.split("-")[0]}-${
-              parseInt(lastNumber.split("-")[1], 10) + 1
-            }`;
+          ? `${lastNumber.split("-")[0]}-${parseInt(lastNumber.split("-")[1], 10) + 100
+          }`
+          : `${lastNumber.split("-")[0]}-${parseInt(lastNumber.split("-")[1], 10) + 1
+          }`;
       return helpers.response(res, 200, "get  Account Cost Code Successfully", {
         code: newCode,
       });
@@ -124,9 +136,8 @@ module.exports = {
 
     const lastNumber = checkData[checkData.length - 1].account_code;
     const newCode = lastNumber.split(".")[account_type - 2]
-      ? `${lastNumber}.${
-          parseInt(lastNumber.split(".")[account_type - 2], 10) + 1
-        }`
+      ? `${lastNumber}.${parseInt(lastNumber.split(".")[account_type - 2], 10) + 1
+      }`
       : `${lastNumber}.1`;
     return helpers.response(res, 200, "get  Account Cost Code Successfully", {
       code: newCode,

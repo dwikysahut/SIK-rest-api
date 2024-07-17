@@ -14,6 +14,33 @@ module.exports = {
         }
       );
     }),
+  getAllKreditSubmittedWithDate: (isPrev, accountId, tanggal_awal, tanggal_akhir, unitId = "",) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `SELECT
+        kredit.*,
+        kredit.kredit_value as total_keluar,
+        account1.account_code AS account_code,
+        account1.account_description AS account_description,
+        account2.account_code AS account_cost_account_code,
+        account2.account_description AS account_cost_account_desc
+    FROM
+        kredit
+    INNER JOIN account account1 ON
+        account1.account_id = kredit.account_cash_account
+    INNER JOIN account account2 ON
+        account2.account_id = account_cost_account
+    WHERE kredit_date ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`} AND account1.account_code='${accountId}' AND
+       ${unitId && `kredit.unit_unit_id = ${unitId} AND `}is_submit=1 `,
+        (error, result) => {
+          if (!error) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
   getAllKreditNoSubmittedByRef: (unitId, noRef) =>
     new Promise((resolve, reject) => {
       connection.query(
