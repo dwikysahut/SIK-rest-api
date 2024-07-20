@@ -19,18 +19,18 @@ module.exports = {
       connection.query(
         `SELECT
         kredit.*,
-        kredit.kredit_value as total_keluar,
-        account1.account_code AS account_code,
-        account1.account_description AS account_description,
-        account2.account_code AS account_cost_account_code,
-        account2.account_description AS account_cost_account_desc
+        kredit.kredit_total as total_keluar,
+        account2.account_code AS account_code,
+        account2.account_description AS account_description,
+        account1.account_code AS account_cost_account_code,
+        account1.account_description AS account_cost_account_desc
     FROM
         kredit
     INNER JOIN account account1 ON
         account1.account_id = kredit.account_cash_account
     INNER JOIN account account2 ON
         account2.account_id = account_cost_account
-    WHERE kredit_date ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`} AND account1.account_code='${accountId}' AND
+    WHERE kredit_date ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`} ${accountId != '' ? `AND account1.account_code='${accountId}'` : ''} AND
        ${unitId && `kredit.unit_unit_id = ${unitId} AND `}is_submit=1 `,
         (error, result) => {
           if (!error) {

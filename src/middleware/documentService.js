@@ -14,6 +14,8 @@ const {
   headerTableLaporanPerTanggal,
   tableLaporanPerTanggal,
   footerTableLaporanPerTanggal,
+  tableLaporanKas,
+  tableLaporanJurnalUmum,
 } = require("../assets/htmlTemplate");
 module.exports = {
   pdfGenerate: async function (htmlFile, opts = {}) {
@@ -261,6 +263,110 @@ module.exports = {
     });
     html = html.replace("VALUE_TABEL_PEMBAYARAN_PER_TANGGAL", tableRows);
     html = html.replace("VALUE_TOTAL_KESELURUHAN", rupiahConvert(datas.payment_type?.reduce((accumulator, currentValue) => accumulator + currentValue.total, 0)));
+
+    const buffer = await module.exports.pdfGenerate(html);
+    return buffer;
+  },
+  generateDokumenLaporanKas: async function (htmlFileUrl, datas) {
+    //baca file
+    let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
+
+    html = html.replace(
+      "VALUE_TAHUN_AJARAN",
+      `${datas.tahun_ajaran}`
+    );
+    html = html.replace(
+      "VALUE_TITLE_DOKUMEN",
+      datas.title
+    );
+    html = html.replace(
+      "VALUE_UNIT",
+      `${datas.unit}`
+    );
+
+    html = html.replace(
+      "VALUE_TANGGAL_DOKUMEN",
+      `Depok, ${moment().locale("id").format("DD MMMM YYYY")}`
+    );
+    html = html.replace("VALUE_NIP", "");
+
+
+    let tableRowsDebit = "";
+    datas.data_payment.filter(item => item.account_cost_account_code.includes('4-4') || item.account_code.includes('4-4')).forEach((data, index) => {
+      tableRowsDebit += tableLaporanKas(index, data, datas)
+    });
+    html = html.replace("VALUE_TABEL_PENERIMAAN", tableRowsDebit);
+
+    let tableRowsKredit = "";
+    datas.data_payment.filter(item => item.account_cost_account_code.includes('5-5') || item.account_code.includes('5-5')).forEach((data, index) => {
+      tableRowsKredit += tableLaporanKas(index, data, datas)
+    });
+    html = html.replace("VALUE_TABEL_PENGELUARAN", tableRowsKredit);
+
+    html = html.replace("VALUE_TOTAL_DEBIT", rupiahConvert(datas.sub_total_masuk));
+    html = html.replace("VALUE_TOTAL_KREDIT", rupiahConvert(datas.sub_total_keluar));
+
+    html = html.replace("VALUE_SUB_TOTAL_DEBIT", rupiahConvert(datas.sub_total_masuk));
+    html = html.replace("VALUE_SUB_TOTAL_CREDIT", rupiahConvert(datas.sub_total_keluar));
+    html = html.replace("VALUE_SALDO_AWAL_DEBIT", rupiahConvert(datas.saldo_awal_debit));
+    html = html.replace("VALUE_SALDO_AWAL_CREDIT", rupiahConvert(datas.saldo_awal_kredit));
+    html = html.replace("VALUE_TOTAL_AKHIR_DEBIT", rupiahConvert(datas.total_masuk));
+    html = html.replace("VALUE_TOTAL_AKHIR_CREDIT", rupiahConvert(datas.total_keluar));
+    html = html.replace("VALUE_SALDO_AKHIR_DEBIT", rupiahConvert(datas.saldo_akhir));
+    html = html.replace("VALUE_SALDO_AKHIR_CREDIT", '-');
+    // html = html.replace("VALUE_TOTAL_KESELURUHAN", rupiahConvert(datas.payment_type?.reduce((accumulator, currentValue) => accumulator + currentValue.total, 0)));
+
+    const buffer = await module.exports.pdfGenerate(html);
+    return buffer;
+  },
+  generateDokumenJurnalUmum: async function (htmlFileUrl, datas) {
+    //baca file
+    let html = fs.readFileSync(path.join(__dirname, htmlFileUrl), "utf-8");
+
+    html = html.replace(
+      "VALUE_TAHUN_AJARAN",
+      `${datas.tahun_ajaran}`
+    );
+    html = html.replace(
+      "VALUE_TITLE_DOKUMEN",
+      datas.title
+    );
+    html = html.replace(
+      "VALUE_UNIT",
+      `${datas.unit}`
+    );
+
+    html = html.replace(
+      "VALUE_TANGGAL_DOKUMEN",
+      `Depok, ${moment().locale("id").format("DD MMMM YYYY")}`
+    );
+    html = html.replace("VALUE_NIP", "");
+
+
+    let tableRowsDebit = "";
+    datas.data_payment.filter(item => item.account_cost_account_code.includes('4-4') || item.account_code.includes('4-4')).forEach((data, index) => {
+      tableRowsDebit += tableLaporanJurnalUmum(index, data, datas)
+    });
+    html = html.replace("VALUE_TABEL_PENERIMAAN", tableRowsDebit);
+
+    let tableRowsKredit = "";
+    datas.data_payment.filter(item => item.account_cost_account_code.includes('5-5') || item.account_code.includes('5-5')).forEach((data, index) => {
+      tableRowsKredit += tableLaporanJurnalUmum(index, data, datas)
+    });
+    html = html.replace("VALUE_TABEL_PENGELUARAN", tableRowsKredit);
+
+    html = html.replace("VALUE_TOTAL_DEBIT", rupiahConvert(datas.sub_total_masuk));
+    html = html.replace("VALUE_TOTAL_KREDIT", rupiahConvert(datas.sub_total_keluar));
+
+    html = html.replace("VALUE_SUB_TOTAL_DEBIT", rupiahConvert(datas.sub_total_masuk));
+    html = html.replace("VALUE_SUB_TOTAL_CREDIT", rupiahConvert(datas.sub_total_keluar));
+    html = html.replace("VALUE_SALDO_AWAL_DEBIT", rupiahConvert(datas.saldo_awal_debit));
+    html = html.replace("VALUE_SALDO_AWAL_CREDIT", rupiahConvert(datas.saldo_awal_kredit));
+    html = html.replace("VALUE_TOTAL_AKHIR_DEBIT", rupiahConvert(datas.total_masuk));
+    html = html.replace("VALUE_TOTAL_AKHIR_CREDIT", rupiahConvert(datas.total_keluar));
+    html = html.replace("VALUE_SALDO_AKHIR_DEBIT", rupiahConvert(datas.saldo_akhir));
+    html = html.replace("VALUE_SALDO_AKHIR_CREDIT", '-');
+    // html = html.replace("VALUE_TOTAL_KESELURUHAN", rupiahConvert(datas.payment_type?.reduce((accumulator, currentValue) => accumulator + currentValue.total, 0)));
 
     const buffer = await module.exports.pdfGenerate(html);
     return buffer;

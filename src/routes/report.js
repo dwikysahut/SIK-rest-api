@@ -28,5 +28,9 @@ Route
   .get(
     "/kas-tunai",
     authentication, reportController.laporanKasTunai
+  )
+  .get(
+    "/jurnal-umum",
+    authentication, reportController.laporanJurnalUmum
   );
 module.exports = Route;

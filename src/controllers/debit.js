@@ -74,13 +74,14 @@ module.exports = {
     const { token } = req;
 
     const formBody = {
-      debit_date,
+      debit_date: moment(debit_date).format('YYYY-MM-DD HH:MM:SS'),
       debit_no_ref,
       debit_desc,
       debit_value,
       account_cash_account,
       account_cost_account,
       debit_tax,
+      debit_total: parseInt(debit_value, 10) + ((parseInt(debit_value, 10) * parseInt(debit_tax, 10) / 100)),
       debit_information,
       unit_unit_id,
       is_submit: 0,
@@ -114,9 +115,8 @@ module.exports = {
       formBody
     );
     const setDataLog = {
-      description: `${
-        token.user_full_name
-      } Melakukan Submit Kas Masuk dengan ID ${debit_ids.join(",")}`,
+      description: `${token.user_full_name
+        } Melakukan Submit Kas Masuk dengan ID ${debit_ids.join(",")}`,
       user_user_id: token.user_id ?? null,
     };
     await logModel.postLog(setDataLog);

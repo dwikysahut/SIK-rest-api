@@ -99,7 +99,7 @@ module.exports = {
         account_type == 1
           ? `${account_code.slice(0, 4)}`
           : `${account_code.slice(0, 5)}`;
-      console.log(query);
+      console.log(unitIdQuery);
 
       const checkData = await accountCostModel.getAccountCostByTypeAndId(
         query,
@@ -114,7 +114,6 @@ module.exports = {
               parseInt(item.account_code.split("-")[1], 10) % 100 === 0
           )
           : checkData;
-      console.log(checkDataFilter);
       const lastNumber =
         checkDataFilter[checkDataFilter.length - 1]?.account_code || 0;
       const newCode =

@@ -78,7 +78,8 @@ module.exports = {
         detail_payment_rate_bulan.*,
         student.*,
         class.class_name,
-        accountBayar.account_description AS payment_rate_via_name,
+        accountBayar.account_description AS account_cost_account_description,
+        accountBayar.account_code AS account_cost_account_code,
         accountBiaya.*,
         detail_payment_rate_bulan.payment_rate_bill AS total,
         month.month_name 
@@ -94,7 +95,7 @@ module.exports = {
         LEFT JOIN account accountBayar ON accountBayar.account_id = detail_payment_rate_bulan.payment_rate_via
     WHERE 
         payment_rate_status = 1 
-        AND accountBayar.account_code = '${accountId}' 
+        ${accountId != '' ? `AND accountBayar.account_code = '${accountId}' ` : ''}
         AND detail_payment_rate_bulan.payment_rate_date_pay ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`}  
         AND payment.period_period_id = ${periodId} 
         ${unitId && `AND payment.unit_unit_id = ${unitId}`} 

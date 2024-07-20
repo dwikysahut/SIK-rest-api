@@ -1,6 +1,6 @@
 const { dateConvert, rupiahConvert } = require("../../helpers");
 const moment = require("moment");
-
+moment.locale('id')
 module.exports = {
   tableHtmlRincianPembayaran: function (data, index, datas) {
     return `<tr>
@@ -111,6 +111,29 @@ module.exports = {
     <td style="font-size: 11px;">${rupiahConvert(data.payment_rate_bebas_pay_bill ||
         parseInt(data.payment_rate_bill, 10))}</td>
     <td style="font-size: 11px;">${data.payment_rate_bebas_pay_desc ?? data.month_name}</td>
+  </tr>
+   
+`,
+  tableLaporanKas: (index, data, datas) => `
+    <tr>
+    <td style="font-size: 11px;">${index + 1}</td>
+    <td style="font-size: 11px;">${data.account_code}</td>
+    <td style="font-size: 11px;">${data.account_description}</td>
+    <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total, 10) || '-')}</td>
+    <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total_keluar, 10) || '-')}</td>
+    
+  </tr>
+   
+`,
+  tableLaporanJurnalUmum: (index, data, datas) => `
+    <tr>
+    <td style="font-size: 11px;">${data.account_cost_account_description ?? '-'}</td>
+    <td style="font-size: 11px;">${moment(data.date_pay).format('DD-MM-YYYY')}</td>
+    <td style="font-size: 11px;">${data.account_cost_account_code}</td>
+    <td style="font-size: 11px;">${data.account_description}</td>
+    <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total, 10) || '-')}</td>
+    <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total_keluar, 10) || '-')}</td>
+    
   </tr>
    
 `,

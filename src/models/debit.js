@@ -182,18 +182,18 @@ module.exports = {
       connection.query(
         `SELECT
           debit.*,
-          debit.debit_value as total,
-          account1.account_code AS account_code,
-          account1.account_description AS account_description,
-          account2.account_code AS account_cost_account_code,
-          account2.account_description AS account_cost_account_desc
+          debit.debit_total as total,
+          account2.account_code AS account_code,
+          account2.account_description AS account_description,
+          account1.account_code AS account_cost_account_code,
+          account1.account_description AS account_cost_account_desc
       FROM
           debit
       INNER JOIN account account1 ON
           account1.account_id = debit.account_cash_account
       INNER JOIN account account2 ON
           account2.account_id = account_cost_account
-      WHERE debit_date ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`} AND account1.account_code='${accountId}' AND
+      WHERE debit_date ${isPrev ? `< '${tanggal_awal}'` : `BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`} ${accountId != '' ? `AND account1.account_code='${accountId}'` : ''} AND
          ${unitId && `debit.unit_unit_id = ${unitId} AND `}is_submit=1 `,
         (error, result) => {
           if (!error) {

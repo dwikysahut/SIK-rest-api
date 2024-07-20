@@ -99,6 +99,8 @@ module.exports = {
         detail_payment_rate_bebas.*,
         student.*,
         accountBiaya.*,
+        accountBayar.account_code AS account_cost_account_code,
+        accountBayar.account_description AS account_cost_account_description,
         class.class_name,
         detail_payment_rate_bebas_pay.*,
         payment_rate_bebas_pay_bill AS total
@@ -113,8 +115,8 @@ module.exports = {
         INNER JOIN class ON student.class_class_id = class.class_id
         INNER JOIN account accountBiaya ON pos_pay.account_account_code = accountBiaya.account_code
     WHERE 
-        accountBayar.account_code = '${accountId}'
-        AND detail_payment_rate_bebas_pay.payment_rate_date_pay ${isPrev ? `< '${tanggal_awal}'` : ` BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`}
+        ${accountId != '' ? `accountBayar.account_code = '${accountId}' AND ` : ' '}
+         detail_payment_rate_bebas_pay.payment_rate_date_pay ${isPrev ? `< '${tanggal_awal}'` : ` BETWEEN '${tanggal_awal}' AND '${tanggal_akhir}'`}
         AND payment.period_period_id = ${periodId}
         ${unitId ? `AND payment.unit_unit_id = ${unitId}` : ''} 
    `,

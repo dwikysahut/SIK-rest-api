@@ -27,6 +27,18 @@ Route.get(
   .get(
     "/report/pembayaran-per-tanggal",
     dokumenController.dokumenlaporanPembayaranPerTanggal
+  )
+  .get(
+    "/report/laporan-kas-bank",
+    dokumenController.dokumenLaporanKasBank
+  )
+  .get(
+    "/report/laporan-kas-tunai",
+    dokumenController.dokumenLaporanKasTunai
+  )
+  .get(
+    "/report/laporan-jurnal-umum",
+    dokumenController.dokumenLaporanJurnalUmum
   );
 
 module.exports = Route;

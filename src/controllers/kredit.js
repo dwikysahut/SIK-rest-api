@@ -96,10 +96,13 @@ module.exports = {
     const { token } = req;
 
     const formBody = {
-      kredit_date,
+      kredit_date: moment(kredit_date).format('YYYY-MM-DD HH:MM:SS'),
+
       kredit_no_ref,
       kredit_desc,
       kredit_value,
+      kredit_total: parseInt(kredit_value, 10) + ((parseInt(kredit_value, 10) * parseInt(kredit_tax, 10) / 100)),
+
       account_cash_account,
       account_cost_account,
       kredit_tax,
