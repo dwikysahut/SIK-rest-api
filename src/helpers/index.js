@@ -126,5 +126,13 @@ module.exports = {
     }
 
     return `${temp}`;
-  },
+  },// Function to extract unique account codes
+  extractUniqueAccountCodes: (data) => {
+    const uniqueAccountCodes = new Set();
+    data.data_payment.forEach(item => {
+      uniqueAccountCodes.add(item.account_code);
+    });
+    return Array.from(uniqueAccountCodes); // Convert set to array
+  }
+
 };

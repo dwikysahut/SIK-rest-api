@@ -125,6 +125,51 @@ module.exports = {
   </tr>
    
 `,
+  tableLaporanKasPerAnggaran: (index, data, totalVar, title) => {
+    let tableHtml = `<p>${title}</p>
+    <table style="border: none;">
+      <thead>
+        <th style="font-size: 12px;">NO.</th>
+        <th style="font-size: 12px;">Tanggal</th>
+        <th style="font-size: 12px;">KETERANGAN</th>
+        <th style="font-size: 12px;">NIS</th>
+        <th style="font-size: 12px;">NAMA</th>
+        <th style="font-size: 12px;">KELAS</th>
+        <th style="font-size: 12px;">PENERIMAAN</th>
+        <th style="font-size: 12px;">PENGELUARAN</th>
+      </thead>
+      <tbody>`;
+
+    data?.data.forEach((item, idx) => {
+      tableHtml += `
+      <tr>
+        <td style="font-size: 11px;">${index + idx + 1}</td>
+        <td style="font-size: 11px;">${moment(item.date_pay).format('DD-MM-YYYY')}</td>
+        <td style="font-size: 11px;">${item.account_description || '-'}</td>
+        <td style="font-size: 11px;">${item.student_nis || '-'}</td>
+        <td style="font-size: 11px;">${item.student_full_name || '-'}</td>
+        <td style="font-size: 11px;">${item.class_name || '-'}</td>
+        <td style="font-size: 11px;">${rupiahConvert(parseInt(item.total, 10) || '-')}</td>
+        <td style="font-size: 11px;">${rupiahConvert(parseInt(item.total_keluar, 10) || '-')}</td>
+      </tr>`;
+    });
+
+    tableHtml += `
+      </tbody>
+    </table>`;
+    tableHtml += `
+    <div style="width: 100%; align-self: flex-end; margin-top: 1rem;background-color: lightgray;">
+    <div style="display: flex;">
+        <p style="flex: 1;"><strong>TOTAL</strong></p>
+        <p style="flex:1;"><strong>${rupiahConvert(parseInt(data[`${totalVar}`] || 0, 10))}</strong></p>
+
+    </div>
+
+</div>`;
+
+    return tableHtml;
+  },
+
   tableLaporanJurnalUmum: (index, data, datas) => `
     <tr>
     <td style="font-size: 11px;">${data.account_cost_account_description ?? '-'}</td>
@@ -133,7 +178,6 @@ module.exports = {
     <td style="font-size: 11px;">${data.account_description}</td>
     <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total, 10) || '-')}</td>
     <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total_keluar, 10) || '-')}</td>
-    
   </tr>
    
 `,

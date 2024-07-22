@@ -271,8 +271,8 @@ module.exports = {
     const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
 
     const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar, 10)) || 0 : acc[cur.account_code] = cur;
+      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
+      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
       return acc;
     }, {});
 
@@ -316,8 +316,8 @@ module.exports = {
     const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
     console.log(resultMonthly)
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total, 10) + parseInt(cur.total, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar, 10) + parseInt(cur.total_keluar, 10)) || 0 : acc[cur.account_code] = cur;
+      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
+      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
       return acc;
     }, {});
     const query =
