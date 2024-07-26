@@ -1,5 +1,22 @@
 const nodemailer = require("nodemailer");
+const mysqldump = require('mysqldump');
+// or const mysqldump = require('mysqldump')
+const path = require("path");
+const fs = require("fs");
+const { exec } = require('child_process');
+require("dotenv").config();
 
+// dump the result straight to a file
+const dumpOptions = {
+  connection: {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  },
+  dump: { schema: { table: { dropIfExist: true } } },
+  dumpToFile: './dump.sql' // Specify the file where you want to save the dump
+};
 module.exports = {
   response: (response, status, message, data = {}) => {
     const result = {
@@ -133,6 +150,32 @@ module.exports = {
       uniqueAccountCodes.add(item.account_code);
     });
     return Array.from(uniqueAccountCodes); // Convert set to array
+  },
+  generateDumpSQL: async () => {
+    try {
+      const dbConfig = {
+        user: 'root',
+        password: '',
+        database: 'db_stikes',
+        host: 'localhost',  // or your database host
+        port: 3306           // default MySQL port
+      };
+      const dump = await mysqldump({
+        connection: dbConfig,
+        dumpToFile: './backup_db.sql'
+      });
+
+      // const dumpData = await mysqldump(dumpOptions);
+      // const dumpContent = typeof dumpData === 'string' ? dumpData : JSON.stringify(dumpData);
+
+      // const dumpFilePath = './dump.sql'; // Adjust the file path as needed
+      // await fs.promises.writeFile(dumpFilePath, dumpContent);
+      // console.log('Dump file created:', dumpFilePath);
+      return dump;
+    } catch (error) {
+      console.error('Error creating dump:', error);
+      return null;
+    }
   }
 
 };

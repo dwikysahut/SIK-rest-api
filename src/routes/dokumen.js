@@ -52,5 +52,9 @@ Route.get(
     "/report/laporan-kas-bank/anggaran",
     dokumenController.dokumenLaporanKasBankPerAnggaran
   )
+  .get(
+    "/report/laporan-jurnal-umum/anggaran",
+    dokumenController.dokumenLaporanJurnalPerAnggaran
+  )
 
 module.exports = Route;

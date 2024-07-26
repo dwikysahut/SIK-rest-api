@@ -11,6 +11,7 @@ const {
   generateDokumenLaporanKas,
   generateDokumenJurnalUmum,
   generateDokumenLaporanKasPerAnggaran,
+  generateDokumenLaporanJurnalUmumPerAnggaran,
 } = require("../middleware/documentService");
 const { promiseHandler } = require("../middleware/promiseHandler");
 const monthlyPaymentModel = require("../models/monthly-payment");
@@ -29,6 +30,7 @@ const cashAccountModel = require("../models/cash-account");
 const { decryptData, encryptData } = require("../utils/encrypt");
 const posPayModel = require("../models/pos-pay");
 moment.locale('id');
+
 module.exports = {
   getDokumenTagihanPembayaran: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -1160,10 +1162,10 @@ module.exports = {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '', tanggal_awal, tanggal_akhir, unit_id);
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '', tanggal_awal, tanggal_akhir, unit_id);
 
     const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
       acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
@@ -1205,10 +1207,10 @@ module.exports = {
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '', tanggal_awal, tanggal_akhir, unit_id);
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '', tanggal_awal, tanggal_akhir, unit_id);
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
       acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
@@ -1250,15 +1252,15 @@ module.exports = {
     const resultUnit = await unitModel.getUnitById(unit_id)
     const resultPeriod = await periodModel.getTahunAjaranById(period_id)
 
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan per Jenis Anggaran (Kas Bank) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
+    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan per Jenis Anggaran (Jurnal Umum) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
     const accountCodeArr = helpers.extractUniqueAccountCodes(newResult)
     console.log(accountCodeArr)
     const newResultByAccountCode = accountCodeArr.map(item => {
-      const dataFilteredDebit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code.includes('4-4') || itemFilter.account_code.includes('4-4')))
-      const dataFilteredKredit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code.includes('5-5') || itemFilter.account_code.includes('5-5')))
+      const dataFilteredDebit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code?.includes('4-4') || itemFilter.account_code?.includes('4-4')))
+      const dataFilteredKredit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code?.includes('5-5') || itemFilter.account_code?.includes('5-5')))
       return {
         code: item,
-        description: resultCashAccount.filter(itemAccount => itemAccount.account_code == item)[0].account_description,
+        description: resultCashAccount.filter(itemAccount => itemAccount?.account_code == item)[0]?.account_description,
         data_payment: {
           debit: {
             data: dataFilteredDebit,
@@ -1299,8 +1301,8 @@ module.exports = {
         ),
       }
     })
-    const result = await generateDokumenLaporanKasPerAnggaran(
-      "../assets/pdfTemplate/laporan/laporan-kas-per-anggaran.html", newResult,
+    const result = await generateDokumenLaporanJurnalUmumPerAnggaran(
+      "../assets/pdfTemplate/laporan/laporan-jurnal-umum-per-anggaran.html", newResult,
       newResultByAccountCode,
     );
     return helpers.response(res, 200, "GET Dokumen Per anggaran kas tunai berhasil", result);

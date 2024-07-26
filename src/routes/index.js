@@ -21,6 +21,7 @@ const cashAccountRoutes = require("./cash-account");
 const kreditRoutes = require("./kredit");
 const debitRoutes = require("./debit");
 const reportRoutes = require("./report");
+const dbBackupRoutes = require("./db-backup");
 
 const Routes = express.Router();
 
@@ -46,5 +47,6 @@ Routes.use("/cash-account", cashAccountRoutes);
 Routes.use("/kredit", kreditRoutes);
 Routes.use("/debit", debitRoutes);
 Routes.use("/laporan", reportRoutes);
+Routes.use("/db-backup", dbBackupRoutes);
 
 module.exports = Routes;
