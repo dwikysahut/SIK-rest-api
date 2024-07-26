@@ -1,9 +1,9 @@
 const nodemailer = require("nodemailer");
-const mysqldump = require('mysqldump');
+const mysqldump = require("mysqldump");
 // or const mysqldump = require('mysqldump')
 const path = require("path");
 const fs = require("fs");
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 require("dotenv").config();
 
 // dump the result straight to a file
@@ -15,7 +15,7 @@ const dumpOptions = {
     database: process.env.DB_NAME,
   },
   dump: { schema: { table: { dropIfExist: true } } },
-  dumpToFile: './dump.sql' // Specify the file where you want to save the dump
+  dumpToFile: "./dump.sql", // Specify the file where you want to save the dump
 };
 module.exports = {
   response: (response, status, message, data = {}) => {
@@ -143,10 +143,10 @@ module.exports = {
     }
 
     return `${temp}`;
-  },// Function to extract unique account codes
+  }, // Function to extract unique account codes
   extractUniqueAccountCodes: (data) => {
     const uniqueAccountCodes = new Set();
-    data.data_payment.forEach(item => {
+    data.data_payment.forEach((item) => {
       uniqueAccountCodes.add(item.account_code);
     });
     return Array.from(uniqueAccountCodes); // Convert set to array
@@ -154,15 +154,15 @@ module.exports = {
   generateDumpSQL: async () => {
     try {
       const dbConfig = {
-        user: 'root',
-        password: '',
-        database: 'db_stikes',
-        host: 'localhost',  // or your database host
-        port: 3306           // default MySQL port
+        user: process.env.DB_USER,
+        password: rocess.env.DB_PASSWORD,
+        database: rocess.env.DB_NAME,
+        host: "localhost", // or your database host
+        port: 3306, // default MySQL port
       };
       const dump = await mysqldump({
         connection: dbConfig,
-        dumpToFile: './backup_db.sql'
+        dumpToFile: "./backup_db.sql",
       });
 
       // const dumpData = await mysqldump(dumpOptions);
@@ -173,9 +173,8 @@ module.exports = {
       // console.log('Dump file created:', dumpFilePath);
       return dump;
     } catch (error) {
-      console.error('Error creating dump:', error);
+      console.error("Error creating dump:", error);
       return null;
     }
-  }
-
+  },
 };

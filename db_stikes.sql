@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jul 22, 2024 at 12:00 PM
+-- Generation Time: Jul 26, 2024 at 02:30 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.1.17
 
@@ -6106,8 +6106,8 @@ CREATE TABLE `unit` (
 --
 
 INSERT INTO `unit` (`unit_id`, `unit_name`, `users_users_id`) VALUES
-(1, 'SMK', 2),
-(2, 'SMP', 2);
+(1, 'PT', 2),
+(2, 'SMK', 2);
 
 -- --------------------------------------------------------
 
