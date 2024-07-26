@@ -7,15 +7,12 @@ const { exec } = require("child_process");
 require("dotenv").config();
 
 // dump the result straight to a file
-const dumpOptions = {
-  connection: {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-  },
-  dump: { schema: { table: { dropIfExist: true } } },
-  dumpToFile: "./dump.sql", // Specify the file where you want to save the dump
+const dbConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT, // default MySQL port
 };
 module.exports = {
   response: (response, status, message, data = {}) => {
@@ -153,13 +150,6 @@ module.exports = {
   },
   generateDumpSQL: async () => {
     try {
-      const dbConfig = {
-        user: process.env.DB_USER,
-        password: rocess.env.DB_PASSWORD,
-        database: rocess.env.DB_NAME,
-        host: "localhost", // or your database host
-        port: 3306, // default MySQL port
-      };
       const dump = await mysqldump({
         connection: dbConfig,
         dumpToFile: "./backup_db.sql",
