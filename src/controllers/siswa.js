@@ -87,6 +87,13 @@ module.exports = {
     const result = await siswaModel.putStatusSiswa(id, newBody);
     return helpers.response(res, 200, "Data Siswa Berhasil Diubah", result);
   }),
+  putKenaikanKelasSiswaByIds: promiseHandler(async (req, res, next) => {
+    const { ids,id } = req.body;
+    const newIds=ids.join(',');
+    
+    const result = await siswaModel.putKenaikanKelasSiswa(newIds,id);
+    return helpers.response(res, 200, "Data Kenaikan Kelas Siswa Berhasil Diubah", result);
+  }),
   deleteSiswa: promiseHandler(async (req, res, next) => {
     const { id } = req.params;
 

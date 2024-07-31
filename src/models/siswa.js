@@ -1,4 +1,5 @@
 const connection = require("../config/db.config");
+const { putKenaikanKelasSiswaByIds } = require("../controllers/siswa");
 
 module.exports = {
   getAllSiswa: (query) =>
@@ -98,6 +99,25 @@ module.exports = {
       connection.query(
         `UPDATE student set ? WHERE student_id IN ${id}`,
         [setData],
+        (error, result) => {
+          if (!error) {
+            const newData = {
+              student_id: parseInt(id, 10),
+              ...result,
+              field: { id: parseInt(id, 10), ...setData },
+            };
+            resolve(newData);
+          } else {
+            reject(error);
+          }
+        }
+      );
+    }),
+  putKenaikanKelasSiswaByIds: (ids, classId) =>
+    new Promise((resolve, reject) => {
+      connection.query(
+        `UPDATE student set class_class_id=? WHERE student_id IN ${ids}`,
+        [classId],
         (error, result) => {
           if (!error) {
             const newData = {

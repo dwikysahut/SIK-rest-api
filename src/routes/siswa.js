@@ -10,6 +10,7 @@ Route
   .post('/', siswaController.postSiswa)
   .put('/:id', siswaController.putSiswa)
   .put('/status/:id', siswaController.putStatusSiswa)
+  .put('/kenaikan-kelas', siswaController.putKenaikanKelasSiswaByIds)
   .delete('/:id', siswaController.deleteSiswa);
 
 module.exports = Route;
