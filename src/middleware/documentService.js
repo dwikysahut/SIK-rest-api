@@ -398,13 +398,13 @@ module.exports = {
 
 
     let tableRowsDebit = "";
-    datas.data_payment.filter(item => item.account_cost_account_code.includes('4-4') || item.account_code.includes('4-4')).forEach((data, index) => {
+    datas.data_payment.filter(item => item.account_cost_account_code?.includes('4-4') || item.account_code?.includes('4-4')).forEach((data, index) => {
       tableRowsDebit += tableLaporanJurnalUmum(index, data, datas)
     });
     html = html.replace("VALUE_TABEL_PENERIMAAN", tableRowsDebit);
 
     let tableRowsKredit = "";
-    datas.data_payment.filter(item => item.account_cost_account_code.includes('5-5') || item.account_code.includes('5-5')).forEach((data, index) => {
+    datas.data_payment.filter(item => item.account_cost_account_code?.includes('5-5') || item.account_code?.includes('5-5')).forEach((data, index) => {
       tableRowsKredit += tableLaporanJurnalUmum(index, data, datas)
     });
     html = html.replace("VALUE_TABEL_PENGELUARAN", tableRowsKredit);

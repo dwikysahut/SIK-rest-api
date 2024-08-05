@@ -220,7 +220,7 @@ module.exports = {
     <tr>
     <td style="font-size: 11px;">${data.account_cost_account_description ?? '-'}</td>
     <td style="font-size: 11px;">${moment(data.date_pay).format('DD-MM-YYYY')}</td>
-    <td style="font-size: 11px;">${data.account_cost_account_code}</td>
+    <td style="font-size: 11px;">${data.account_cost_account_code??'-'}</td>
     <td style="font-size: 11px;">${data.account_description}</td>
     <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total, 10) || '-')}</td>
     <td style="font-size: 11px;">${rupiahConvert(parseInt(data?.total_keluar, 10) || '-')}</td>

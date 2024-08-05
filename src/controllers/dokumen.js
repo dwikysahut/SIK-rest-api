@@ -29,7 +29,7 @@ const paymentTypeModel = require("../models/payment-type");
 const cashAccountModel = require("../models/cash-account");
 const { decryptData, encryptData } = require("../utils/encrypt");
 const posPayModel = require("../models/pos-pay");
-moment.locale('id');
+moment.locale("id");
 
 module.exports = {
   getDokumenTagihanPembayaran: promiseHandler(async (req, res, next) => {
@@ -424,156 +424,279 @@ module.exports = {
   //dokumen laporan
   dokumenlaporanPembayaranPerKelas: promiseHandler(async (req, res, next) => {
     const { unit_id, class_id, period_id, payment_type } = req.query;
-    const posPayType = await posPayModel.getPosPayById(payment_type)
-    const periodResult = await tahunAjaranModel.getTahunAjaranById(period_id)
-    const unitResult = await unitModel.getUnitById(unit_id)
+    const posPayType = await posPayModel.getPosPayById(payment_type);
+    const periodResult = await tahunAjaranModel.getTahunAjaranById(period_id);
+    const unitResult = await unitModel.getUnitById(unit_id);
     let classResult = null;
-    if (class_id !== '')
-      classResult = await classModel.getKelasById(class_id)
+    if (class_id !== "") classResult = await classModel.getKelasById(class_id);
     const queryFormat = {};
     console.log(class_id);
     // untuk penyesuaian query di sql
-    queryFormat.class_class_id = class_id == "" || class_id == undefined ? "" : class_id;
-    queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
+    queryFormat.class_class_id =
+      class_id == "" || class_id == undefined ? "" : class_id;
+    queryFormat.unit_unit_id =
+      unit_id == "" || unit_id == undefined ? "" : unit_id;
     const queryToString = helpers.queryToString(queryFormat);
 
     const resultSiswa = await studentModel.getAllSiswa(queryToString);
-    console.log(queryFormat)
-    const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPos(
-      unit_id,
-      class_id,
-      period_id,
-      payment_type
-    );
-    const resultFree = await freePaymentModel.getTagihanFreePaymentAllStudentByPos(
-      unit_id,
-      class_id,
-      period_id,
-      payment_type
-    );
+    console.log(queryFormat);
+    const resultMonthly =
+      await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPos(
+        unit_id,
+        class_id,
+        period_id,
+        payment_type
+      );
+    const resultFree =
+      await freePaymentModel.getTagihanFreePaymentAllStudentByPos(
+        unit_id,
+        class_id,
+        period_id,
+        payment_type
+      );
 
     // const total = [...resultFree, ...resultMonthly].reduce(
     //   (accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10),
     //   0
     // );
     const newResult = {
-      tahun_ajaran: `${periodResult.period_start}/${periodResult.period_end}`,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
       title: `Laporan Pembayaran ${posPayType.pos_pay_name} ${unitResult.unit_name}`,
-      class: classResult?.class_name ?? 'Semua',
+      class: classResult?.class_name ?? "Semua",
       students: resultSiswa.map((student) => ({
         ...student,
         total_tagihan:
-          (parseInt(resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bill, 10) || 0) +
+          (parseInt(
+            resultFree.filter(
+              (item) => item.student_id == student.student_id
+            )[0]?.payment_rate_bill,
+            10
+          ) || 0) +
           (resultMonthly
             .filter((item) => item.student_id == student.student_id)
-            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) || 0),
-        result_free: (parseInt(resultFree.filter((item) => item.student_student_id == student.student_id)[0]?.payment_rate_bill, 10) || 0),
+            .reduce(
+              (accumulator, currentValue) =>
+                accumulator + parseInt(currentValue.payment_rate_bill, 10),
+              0
+            ) || 0),
+        result_free:
+          parseInt(
+            resultFree.filter(
+              (item) => item.student_student_id == student.student_id
+            )[0]?.payment_rate_bill,
+            10
+          ) || 0,
         result_month: resultMonthly
           .filter((item) => item.student_id == student.student_id)
-          .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0),
+          .reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseInt(currentValue.payment_rate_bill, 10),
+            0
+          ),
 
         sisa_tagihan:
           (parseInt(
-            resultFree.filter((item) => item.student_id == student.student_id)[0]
-              ?.payment_rate_bebas_pay_remaining,
+            resultFree.filter(
+              (item) => item.student_id == student.student_id
+            )[0]?.payment_rate_bebas_pay_remaining,
             10
           ) || 0) +
           (resultMonthly
-            .filter((item) => item.student_id == student.student_id && item.payment_rate_status == 0)
-            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) || 0),
+            .filter(
+              (item) =>
+                item.student_id == student.student_id &&
+                item.payment_rate_status == 0
+            )
+            .reduce(
+              (accumulator, currentValue) =>
+                accumulator + parseInt(currentValue.payment_rate_bill, 10),
+              0
+            ) || 0),
         sudah_dibayar:
-          (parseInt(resultFree.filter((item) => item.student_id == student.student_id)[0]?.payment_rate_bill, 10) || 0) -
           (parseInt(
-            resultFree.filter((item) => item.student_id == student.student_id)[0]
-              ?.payment_rate_bebas_pay_remaining,
+            resultFree.filter(
+              (item) => item.student_id == student.student_id
+            )[0]?.payment_rate_bill,
+            10
+          ) || 0) -
+          (parseInt(
+            resultFree.filter(
+              (item) => item.student_id == student.student_id
+            )[0]?.payment_rate_bebas_pay_remaining,
             10
           ) || 0) +
           (resultMonthly
-            .filter((item) => item.student_id == student.student_id && item.payment_rate_status == 1)
-            .reduce((accumulator, currentValue) => accumulator + parseInt(currentValue.payment_rate_bill, 10), 0) || 0),
-      }))
+            .filter(
+              (item) =>
+                item.student_id == student.student_id &&
+                item.payment_rate_status == 1
+            )
+            .reduce(
+              (accumulator, currentValue) =>
+                accumulator + parseInt(currentValue.payment_rate_bill, 10),
+              0
+            ) || 0),
+      })),
     };
     const result = await generateDokumenLaporanPerKelas(
       "../assets/pdfTemplate/laporan/pembayaran-per-kelas.html",
       newResult
     );
-    return helpers.response(res, 200, "GET Data Laporan pembayaran per kelas berhasil", result);
+    return helpers.response(
+      res,
+      200,
+      "GET Data Laporan pembayaran per kelas berhasil",
+      result
+    );
   }),
   dokumenlaporanPembayaranPerTanggal: promiseHandler(async (req, res, next) => {
-    const { unit_id, class_id, period_id, payment_type, tanggal_awal, tanggal_akhir } = req.query;
+    const {
+      unit_id,
+      class_id,
+      period_id,
+      payment_type,
+      tanggal_awal,
+      tanggal_akhir,
+    } = req.query;
     const queryFormat = {};
     // untuk penyesuaian query di sql
-    const posPayType = await posPayModel.getPosPayById(payment_type)
-    const periodResult = await tahunAjaranModel.getTahunAjaranById(period_id)
-    const unitResult = await unitModel.getUnitById(unit_id)
+    const posPayType = await posPayModel.getPosPayById(payment_type);
+    const periodResult = await tahunAjaranModel.getTahunAjaranById(period_id);
+    const unitResult = await unitModel.getUnitById(unit_id);
     let classResult = null;
-    if (class_id !== '')
-      classResult = await classModel.getKelasById(class_id)
-    queryFormat.class_class_id = class_id == "" || class_id == undefined ? "" : class_id;
-    queryFormat.unit_unit_id = unit_id == "" || unit_id == undefined ? "" : unit_id;
+    if (class_id !== "") classResult = await classModel.getKelasById(class_id);
+    queryFormat.class_class_id =
+      class_id == "" || class_id == undefined ? "" : class_id;
+    queryFormat.unit_unit_id =
+      unit_id == "" || unit_id == undefined ? "" : unit_id;
     // const queryToString = helpers.queryToString(queryFormat);
 
-    const resultMonthly = await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPosWithDate(
-      unit_id,
-      class_id,
-      period_id,
-      tanggal_awal, tanggal_akhir
-    );
-    console.log(resultMonthly)
-    const resultFree = await freePaymentModel.getTagihanFreePaymentAllStudentByPosWithDate(
-      unit_id,
-      class_id,
-      period_id,
-      tanggal_awal, tanggal_akhir
-    );
-    const query = `WHERE unit_unit_id=${unit_id} && period_period_id=${period_id}`
+    const resultMonthly =
+      await monthlyPaymentModel.getTagihanMonthlyPaymentAllStudentByPosWithDate(
+        unit_id,
+        class_id,
+        period_id,
+        tanggal_awal,
+        tanggal_akhir
+      );
+    console.log(resultMonthly);
+    const resultFree =
+      await freePaymentModel.getTagihanFreePaymentAllStudentByPosWithDate(
+        unit_id,
+        class_id,
+        period_id,
+        tanggal_awal,
+        tanggal_akhir
+      );
+    const query = `WHERE unit_unit_id=${unit_id} && period_period_id=${period_id}`;
     const resultPaymentType = await paymentTypeModel.getAllPaymentType(query);
 
     const newResultPayment = {
-      tahun_ajaran: `${periodResult.period_start}/${periodResult.period_end}`,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+
       title: `Laporan Pembayaran Tanggal ${tanggal_awal} s/d ${tanggal_akhir} `,
-      class: classResult?.class_name ?? 'Semua',
+      class: classResult?.class_name ?? "Semua",
       tanggal_akhir,
       tanggal_awal,
-      payment_type: resultPaymentType.map(item => ({
-        ...item, payment: [...resultMonthly.filter(itemMonthly => item.payment_id == itemMonthly.payment_id), ...resultFree.filter(itemFree => item.payment_id == itemFree.payment_id)], total: (resultFree.filter(itemFree => item.payment_id == itemFree.payment_id).reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.payment_rate_bebas_pay_bill, 10),
-          0
-        ) || 0) + (resultMonthly.filter(itemFree => item.payment_id == itemFree.payment_id).reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.payment_rate_bill, 10),
-          0
-        ) || 0),
-      }))
-    }
+      payment_type: resultPaymentType.map((item) => ({
+        ...item,
+        payment: [
+          ...resultMonthly.filter(
+            (itemMonthly) => item.payment_id == itemMonthly.payment_id
+          ),
+          ...resultFree.filter(
+            (itemFree) => item.payment_id == itemFree.payment_id
+          ),
+        ],
+        total:
+          (resultFree
+            .filter((itemFree) => item.payment_id == itemFree.payment_id)
+            .reduce(
+              (accumulator, currentValue) =>
+                accumulator +
+                parseFloat(currentValue.payment_rate_bebas_pay_bill, 10),
+              0
+            ) || 0) +
+          (resultMonthly
+            .filter((itemFree) => item.payment_id == itemFree.payment_id)
+            .reduce(
+              (accumulator, currentValue) =>
+                accumulator + parseFloat(currentValue.payment_rate_bill, 10),
+              0
+            ) || 0),
+      })),
+    };
     const result = await generateDokumenLaporanPerKelas(
       "../assets/pdfTemplate/laporan/pembayaran-per-tanggal.html",
       newResultPayment
     );
-    return helpers.response(res, 200, "GET Data Laporan pembayaran per kelas berhasil", result);
+    return helpers.response(
+      res,
+      200,
+      "GET Data Laporan pembayaran per kelas berhasil",
+      result
+    );
   }),
   dokumenLaporanKasBank: promiseHandler(async (req, res, next) => {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
-
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        true,
+        "1-10102",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(
+      true,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(
+      true,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(
+      true,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
-    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
-      return acc;
-    }, {});
+    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce(
+      (acc, cur) => {
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total =
+              parseInt(acc[cur.account_code].total || 0, 10) +
+              parseInt(cur.total || 0, 10))
+          : (acc[cur.account_code] = cur);
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total_keluar =
+              parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10))
+          : (acc[cur.account_code] = cur);
+        return acc;
+      },
+      {}
+    );
 
     const queryPrev =
       unit_id == undefined || unit_id == ""
         ? ""
         : `WHERE unit_unit_id=${unit_id}`;
-    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(queryPrev);
+    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(
+      queryPrev
+    );
     const newResultCashAccountPrev = {
       saldo_awal_debit: resultCashAccountPrev.reduce(
         (accumulator, currentValue) =>
@@ -586,31 +709,82 @@ module.exports = {
         0
       ),
     };
-    const combinedResultPrev = [...resultMonthlyPrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFreePrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArrPrev).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResultPrev = [
+      ...resultMonthlyPrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFreePrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArrPrev).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasukPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluarPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    console.log(resultMonthlyPrev)
-    const saldoAkhirPrev = (subTotalMasukPrev + newResultCashAccountPrev.saldo_awal_debit) - (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit)
+    console.log(resultMonthlyPrev);
+    const saldoAkhirPrev =
+      subTotalMasukPrev +
+      newResultCashAccountPrev.saldo_awal_debit -
+      (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit);
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        false,
+        "1-10102",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(
+      false,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(
+      false,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(
+      false,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total =
+            parseInt(acc[cur.account_code].total || 0, 10) +
+            parseInt(cur.total || 0, 10))
+        : (acc[cur.account_code] = cur);
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total_keluar =
+            parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+            parseInt(cur.total_keluar || 0, 10))
+        : (acc[cur.account_code] = cur);
       return acc;
     }, {});
     const query =
@@ -633,49 +807,122 @@ module.exports = {
         0
       ),
     };
-    const combinedResult = [...resultMonthly.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFree.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArr).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResult = [
+      ...resultMonthly.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFree.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArr).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasuk = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluar = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    const resultUnit = await unitModel.getUnitById(unit_id)
-    const resultPeriod = await periodModel.getTahunAjaranById(period_id)
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan (Kas Bank) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
+    const resultUnit = await unitModel.getUnitById(unit_id);
+    const resultPeriod = period_id
+    ? await periodModel.getTahunAjaranById(period_id)
+    : "Semua";
+    const newResult = {
+      unit: unit_id == "" ? "Semua" : resultUnit.unit_name,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+
+      title: `Rekap Laporan (Kas Bank) per Tanggal ${moment(
+        tanggal_awal
+      ).format("DD MMMM YYYY")} Sampai ${moment(tanggal_akhir).format(
+        "DD MMMM YYYY"
+      )}`,
+      data_payment: combinedResult,
+      sub_total_masuk: subTotalMasuk,
+      sub_total_keluar: subTotalKeluar,
+      ...newResultCashAccount,
+      total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit,
+      total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit,
+      saldo_akhir:
+        subTotalMasuk +
+        newResultCashAccount.saldo_awal_debit -
+        (subTotalKeluar + newResultCashAccount.saldo_awal_kredit),
+    };
 
     const result = await generateDokumenLaporanKas(
       "../assets/pdfTemplate/laporan/laporan-kas.html",
-      newResult,
+      newResult
     );
     return helpers.response(res, 200, "GET Dokumen kas bank berhasil", result);
   }),
   dokumenLaporanKasTunai: promiseHandler(async (req, res, next) => {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
-
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        true,
+        "1-10101",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(
+      true,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(
+      true,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(
+      true,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
-    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
-      return acc;
-    }, {});
+    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce(
+      (acc, cur) => {
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total =
+              parseInt(acc[cur.account_code].total || 0, 10) +
+              parseInt(cur.total || 0, 10))
+          : (acc[cur.account_code] = cur);
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total_keluar =
+              parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10))
+          : (acc[cur.account_code] = cur);
+        return acc;
+      },
+      {}
+    );
 
     const queryPrev =
       unit_id == undefined || unit_id == ""
         ? ""
         : `WHERE unit_unit_id=${unit_id}`;
-    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(queryPrev);
+    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(
+      queryPrev
+    );
     const newResultCashAccountPrev = {
       saldo_awal_debit: resultCashAccountPrev.reduce(
         (accumulator, currentValue) =>
@@ -688,34 +935,85 @@ module.exports = {
         0
       ),
     };
-    const combinedResultPrev = [...resultMonthlyPrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFreePrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArrPrev).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResultPrev = [
+      ...resultMonthlyPrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFreePrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArrPrev).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasukPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluarPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    console.log(resultMonthlyPrev)
-    const saldoAkhirPrev = (subTotalMasukPrev + newResultCashAccountPrev.saldo_awal_debit) - (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit)
+    console.log(resultMonthlyPrev);
+    const saldoAkhirPrev =
+      subTotalMasukPrev +
+      newResultCashAccountPrev.saldo_awal_debit -
+      (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit);
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        false,
+        "1-10101",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(
+      false,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(
+      false,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(
+      false,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total =
+            parseInt(acc[cur.account_code].total || 0, 10) +
+            parseInt(cur.total || 0, 10))
+        : (acc[cur.account_code] = cur);
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total_keluar =
+            parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+            parseInt(cur.total_keluar || 0, 10))
+        : (acc[cur.account_code] = cur);
       return acc;
     }, {});
-    console.log(reducedArr)
+    console.log(reducedArr);
     const query =
       unit_id == undefined || unit_id == ""
         ? ""
@@ -736,48 +1034,121 @@ module.exports = {
         0
       ),
     };
-    const combinedResult = [...resultMonthly.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFree.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArr).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResult = [
+      ...resultMonthly.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFree.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArr).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasuk = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluar = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
-    const resultUnit = await unitModel.getUnitById(unit_id)
-    const resultPeriod = await periodModel.getTahunAjaranById(period_id)
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan (Kas Tunai) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
+    );
+    const resultUnit = await unitModel.getUnitById(unit_id);
+    const resultPeriod = period_id
+    ? await periodModel.getTahunAjaranById(period_id)
+    : "Semua";
+    const newResult = {
+      unit: unit_id == "" ? "Semua" : resultUnit.unit_name,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+
+      title: `Rekap Laporan (Kas Tunai) per Tanggal ${moment(
+        tanggal_awal
+      ).format("DD MMMM YYYY")} Sampai ${moment(tanggal_akhir).format(
+        "DD MMMM YYYY"
+      )}`,
+      data_payment: combinedResult,
+      sub_total_masuk: subTotalMasuk,
+      sub_total_keluar: subTotalKeluar,
+      ...newResultCashAccount,
+      total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit,
+      total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit,
+      saldo_akhir:
+        subTotalMasuk +
+        newResultCashAccount.saldo_awal_debit -
+        (subTotalKeluar + newResultCashAccount.saldo_awal_kredit),
+    };
 
     const result = await generateDokumenLaporanKas(
       "../assets/pdfTemplate/laporan/laporan-kas.html",
-      newResult,
+      newResult
     );
     return helpers.response(res, 200, "GET Laporan kas tunai berhasil", result);
   }),
   dokumenLaporanJurnalUmum: promiseHandler(async (req, res, next) => {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
-
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        true,
+        "",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(
+      true,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(
+      true,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(
+      true,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
-    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
-      return acc;
-    }, {});
+    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce(
+      (acc, cur) => {
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total =
+              parseInt(acc[cur.account_code].total || 0, 10) +
+              parseInt(cur.total || 0, 10))
+          : (acc[cur.account_code] = cur);
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total_keluar =
+              parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10))
+          : (acc[cur.account_code] = cur);
+        return acc;
+      },
+      {}
+    );
 
     const queryPrev =
       unit_id == undefined || unit_id == ""
         ? ""
         : `WHERE unit_unit_id=${unit_id}`;
-    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(queryPrev);
+    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(
+      queryPrev
+    );
     const newResultCashAccountPrev = {
       saldo_awal_debit: resultCashAccountPrev.reduce(
         (accumulator, currentValue) =>
@@ -790,34 +1161,85 @@ module.exports = {
         0
       ),
     };
-    const combinedResultPrev = [...resultMonthlyPrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFreePrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArrPrev).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResultPrev = [
+      ...resultMonthlyPrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFreePrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArrPrev).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasukPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluarPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    console.log(resultMonthlyPrev)
-    const saldoAkhirPrev = (subTotalMasukPrev + newResultCashAccountPrev.saldo_awal_debit) - (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit)
+    console.log(resultMonthlyPrev);
+    const saldoAkhirPrev =
+      subTotalMasukPrev +
+      newResultCashAccountPrev.saldo_awal_debit -
+      (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit);
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        false,
+        "",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(
+      false,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(
+      false,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(
+      false,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total =
+            parseInt(acc[cur.account_code].total || 0, 10) +
+            parseInt(cur.total || 0, 10))
+        : (acc[cur.account_code] = cur);
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total_keluar =
+            parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+            parseInt(cur.total_keluar || 0, 10))
+        : (acc[cur.account_code] = cur);
       return acc;
     }, {});
-    console.log(reducedArr)
+    console.log(reducedArr);
     const query =
       unit_id == undefined || unit_id == ""
         ? ""
@@ -838,48 +1260,125 @@ module.exports = {
         0
       ),
     };
-    const combinedResult = [...resultMonthly.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFree.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArr).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResult = [
+      ...resultMonthly.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFree.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArr).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasuk = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluar = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
-    const resultUnit = await unitModel.getUnitById(unit_id)
-    const resultPeriod = await periodModel.getTahunAjaranById(period_id)
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan Jurnal per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
+    );
+    const resultUnit = await unitModel.getUnitById(unit_id);
+    const resultPeriod = period_id
+      ? await periodModel.getTahunAjaranById(period_id)
+      : "Semua";
+    const newResult = {
+      unit: unit_id == "" ? "Semua" : resultUnit.unit_name,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+
+      title: `Rekap Laporan Jurnal per Tanggal ${moment(tanggal_awal).format(
+        "DD MMMM YYYY"
+      )} Sampai ${moment(tanggal_akhir).format("DD MMMM YYYY")}`,
+      data_payment: combinedResult,
+      sub_total_masuk: subTotalMasuk,
+      sub_total_keluar: subTotalKeluar,
+      ...newResultCashAccount,
+      total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit,
+      total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit,
+      saldo_akhir:
+        subTotalMasuk +
+        newResultCashAccount.saldo_awal_debit -
+        (subTotalKeluar + newResultCashAccount.saldo_awal_kredit),
+    };
 
     const result = await generateDokumenJurnalUmum(
       "../assets/pdfTemplate/laporan/laporan-jurnal-umum.html",
-      newResult,
+      newResult
     );
-    return helpers.response(res, 200, "GET Dokumen Jurnal Umum berhasil", result);
+    return helpers.response(
+      res,
+      200,
+      "GET Dokumen Jurnal Umum berhasil",
+      result
+    );
   }),
 
   dokumenLaporanKasBankPerAnggaran: promiseHandler(async (req, res, next) => {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        true,
+        "1-10102",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(
+      true,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(
+      true,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(
+      true,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
-    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
-      return acc;
-    }, {});
+    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce(
+      (acc, cur) => {
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total =
+              parseInt(acc[cur.account_code].total || 0, 10) +
+              parseInt(cur.total || 0, 10))
+          : (acc[cur.account_code] = cur);
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total_keluar =
+              parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10))
+          : (acc[cur.account_code] = cur);
+        return acc;
+      },
+      {}
+    );
 
     const queryPrev =
       unit_id == undefined || unit_id == ""
         ? ""
         : `WHERE unit_unit_id=${unit_id}`;
-    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(queryPrev);
+    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(
+      queryPrev
+    );
     const newResultCashAccountPrev = {
       saldo_awal_debit: resultCashAccountPrev.reduce(
         (accumulator, currentValue) =>
@@ -892,31 +1391,82 @@ module.exports = {
         0
       ),
     };
-    const combinedResultPrev = [...resultMonthlyPrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFreePrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArrPrev).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResultPrev = [
+      ...resultMonthlyPrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFreePrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArrPrev).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasukPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluarPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    console.log(resultMonthlyPrev)
-    const saldoAkhirPrev = (subTotalMasukPrev + newResultCashAccountPrev.saldo_awal_debit) - (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit)
+    console.log(resultMonthlyPrev);
+    const saldoAkhirPrev =
+      subTotalMasukPrev +
+      newResultCashAccountPrev.saldo_awal_debit -
+      (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit);
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '1-10102', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '1-10102', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        false,
+        "1-10102",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(
+      false,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(
+      false,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(
+      false,
+      "1-10102",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) || 0 : acc[cur.account_code] = cur;
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total =
+            parseInt(acc[cur.account_code].total, 10) +
+            parseInt(cur.total || 0, 10))
+        : (acc[cur.account_code] = cur);
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total_keluar =
+            parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10) || 0)
+        : (acc[cur.account_code] = cur);
       return acc;
     }, {});
     const query =
@@ -939,30 +1489,76 @@ module.exports = {
         0
       ),
     };
-    const combinedResult = [...resultMonthly.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFree.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArr).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResult = [
+      ...resultMonthly.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFree.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArr).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasuk = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluar = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    const resultUnit = await unitModel.getUnitById(unit_id)
-    const resultPeriod = await periodModel.getTahunAjaranById(period_id)
+    const resultUnit = await unitModel.getUnitById(unit_id);
+    const resultPeriod = period_id
+    ? await periodModel.getTahunAjaranById(period_id)
+    : "Semua";
 
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan per Jenis Anggaran (Kas Bank) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
-    const accountCodeArr = helpers.extractUniqueAccountCodes(newResult)
-    console.log(accountCodeArr)
-    const newResultByAccountCode = accountCodeArr.map(item => {
-      const dataFilteredDebit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code.includes('4-4') || itemFilter.account_code.includes('4-4')))
-      const dataFilteredKredit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code.includes('5-5') || itemFilter.account_code.includes('5-5')))
+    const newResult = {
+      unit: unit_id == "" ? "Semua" : resultUnit.unit_name,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+
+      title: `Rekap Laporan per Jenis Anggaran (Kas Bank) per Tanggal ${moment(
+        tanggal_awal
+      ).format("DD MMMM YYYY")} Sampai ${moment(tanggal_akhir).format(
+        "DD MMMM YYYY"
+      )}`,
+      data_payment: combinedResult,
+      sub_total_masuk: subTotalMasuk,
+      sub_total_keluar: subTotalKeluar,
+      ...newResultCashAccount,
+      total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit,
+      total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit,
+      saldo_akhir:
+        subTotalMasuk +
+        newResultCashAccount.saldo_awal_debit -
+        (subTotalKeluar + newResultCashAccount.saldo_awal_kredit),
+    };
+    const accountCodeArr = helpers.extractUniqueAccountCodes(newResult);
+    console.log(accountCodeArr);
+    const newResultByAccountCode = accountCodeArr.map((item) => {
+      const dataFilteredDebit = newResult.data_payment.filter(
+        (itemFilter) =>
+          itemFilter.account_code == item &&
+          (itemFilter.account_cost_account_code.includes("4-4") ||
+            itemFilter.account_code.includes("4-4"))
+      );
+      const dataFilteredKredit = newResult.data_payment.filter(
+        (itemFilter) =>
+          itemFilter.account_code == item &&
+          (itemFilter.account_cost_account_code.includes("5-5") ||
+            itemFilter.account_code.includes("5-5"))
+      );
       return {
         code: item,
-        description: resultCashAccount.filter(itemAccount => itemAccount.account_code == item)[0].account_description,
+        description: resultCashAccount.filter(
+          (itemAccount) => itemAccount.account_code == item
+        )[0].account_description,
         data_payment: {
           debit: {
             data: dataFilteredDebit,
@@ -991,21 +1587,26 @@ module.exports = {
             ),
           },
         },
-        total: newResult.data_payment.filter(itemFilter => itemFilter.account_code == item)?.reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.total || 0, 10),
-          0
-        ),
-        total_keluar: newResult.data_payment.filter(itemFilter => itemFilter.account_code == item)?.reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.total_keluar || 0, 10),
-          0
-        ),
-      }
-    })
+        total: newResult.data_payment
+          .filter((itemFilter) => itemFilter.account_code == item)
+          ?.reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseFloat(currentValue.total || 0, 10),
+            0
+          ),
+        total_keluar: newResult.data_payment
+          .filter((itemFilter) => itemFilter.account_code == item)
+          ?.reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseFloat(currentValue.total_keluar || 0, 10),
+            0
+          ),
+      };
+    });
     const result = await generateDokumenLaporanKasPerAnggaran(
-      "../assets/pdfTemplate/laporan/laporan-kas-per-anggaran.html", newResult,
-      newResultByAccountCode,
+      "../assets/pdfTemplate/laporan/laporan-kas-per-anggaran.html",
+      newResult,
+      newResultByAccountCode
     );
     return helpers.response(res, 200, "GET Dokumen kas bank berhasil", result);
   }),
@@ -1013,22 +1614,62 @@ module.exports = {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        true,
+        "1-10101",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(
+      true,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(
+      true,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(
+      true,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
-    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
-      return acc;
-    }, {});
+    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce(
+      (acc, cur) => {
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total =
+              parseInt(acc[cur.account_code].total || 0, 10) +
+              parseInt(cur.total || 0, 10))
+          : (acc[cur.account_code] = cur);
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total_keluar =
+              parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10))
+          : (acc[cur.account_code] = cur);
+        return acc;
+      },
+      {}
+    );
 
     const queryPrev =
       unit_id == undefined || unit_id == ""
         ? ""
         : `WHERE unit_unit_id=${unit_id}`;
-    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(queryPrev);
+    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(
+      queryPrev
+    );
     const newResultCashAccountPrev = {
       saldo_awal_debit: resultCashAccountPrev.reduce(
         (accumulator, currentValue) =>
@@ -1041,31 +1682,82 @@ module.exports = {
         0
       ),
     };
-    const combinedResultPrev = [...resultMonthlyPrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFreePrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArrPrev).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResultPrev = [
+      ...resultMonthlyPrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFreePrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArrPrev).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasukPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluarPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    console.log(resultMonthlyPrev)
-    const saldoAkhirPrev = (subTotalMasukPrev + newResultCashAccountPrev.saldo_awal_debit) - (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit)
+    console.log(resultMonthlyPrev);
+    const saldoAkhirPrev =
+      subTotalMasukPrev +
+      newResultCashAccountPrev.saldo_awal_debit -
+      (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit);
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '1-10101', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '1-10101', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        false,
+        "1-10101",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(
+      false,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(
+      false,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(
+      false,
+      "1-10101",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) || 0 : acc[cur.account_code] = cur;
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total =
+            parseInt(acc[cur.account_code].total, 10) +
+            parseInt(cur.total || 0, 10))
+        : (acc[cur.account_code] = cur);
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total_keluar =
+            parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10) || 0)
+        : (acc[cur.account_code] = cur);
       return acc;
     }, {});
     const query =
@@ -1088,30 +1780,76 @@ module.exports = {
         0
       ),
     };
-    const combinedResult = [...resultMonthly.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFree.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArr).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResult = [
+      ...resultMonthly.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFree.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArr).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasuk = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluar = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    const resultUnit = await unitModel.getUnitById(unit_id)
-    const resultPeriod = await periodModel.getTahunAjaranById(period_id)
+    const resultUnit = await unitModel.getUnitById(unit_id);
+    const resultPeriod =period_id
+    ? await periodModel.getTahunAjaranById(period_id)
+    : "Semua";
 
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan per Jenis Anggaran (Kas Bank) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
-    const accountCodeArr = helpers.extractUniqueAccountCodes(newResult)
-    console.log(accountCodeArr)
-    const newResultByAccountCode = accountCodeArr.map(item => {
-      const dataFilteredDebit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code.includes('4-4') || itemFilter.account_code.includes('4-4')))
-      const dataFilteredKredit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code.includes('5-5') || itemFilter.account_code.includes('5-5')))
+    const newResult = {
+      unit: unit_id == "" ? "Semua" : resultUnit.unit_name,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+
+      title: `Rekap Laporan per Jenis Anggaran (Kas Bank) per Tanggal ${moment(
+        tanggal_awal
+      ).format("DD MMMM YYYY")} Sampai ${moment(tanggal_akhir).format(
+        "DD MMMM YYYY"
+      )}`,
+      data_payment: combinedResult,
+      sub_total_masuk: subTotalMasuk,
+      sub_total_keluar: subTotalKeluar,
+      ...newResultCashAccount,
+      total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit,
+      total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit,
+      saldo_akhir:
+        subTotalMasuk +
+        newResultCashAccount.saldo_awal_debit -
+        (subTotalKeluar + newResultCashAccount.saldo_awal_kredit),
+    };
+    const accountCodeArr = helpers.extractUniqueAccountCodes(newResult);
+    console.log(accountCodeArr);
+    const newResultByAccountCode = accountCodeArr.map((item) => {
+      const dataFilteredDebit = newResult.data_payment.filter(
+        (itemFilter) =>
+          itemFilter.account_code == item &&
+          (itemFilter.account_cost_account_code.includes("4-4") ||
+            itemFilter.account_code.includes("4-4"))
+      );
+      const dataFilteredKredit = newResult.data_payment.filter(
+        (itemFilter) =>
+          itemFilter.account_code == item &&
+          (itemFilter.account_cost_account_code.includes("5-5") ||
+            itemFilter.account_code.includes("5-5"))
+      );
       return {
         code: item,
-        description: resultCashAccount.filter(itemAccount => itemAccount.account_code == item)[0].account_description,
+        description: resultCashAccount.filter(
+          (itemAccount) => itemAccount.account_code == item
+        )[0].account_description,
         data_payment: {
           debit: {
             data: dataFilteredDebit,
@@ -1140,44 +1878,94 @@ module.exports = {
             ),
           },
         },
-        total: newResult.data_payment.filter(itemFilter => itemFilter.account_code == item)?.reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.total || 0, 10),
-          0
-        ),
-        total_keluar: newResult.data_payment.filter(itemFilter => itemFilter.account_code == item)?.reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.total_keluar || 0, 10),
-          0
-        ),
-      }
-    })
+        total: newResult.data_payment
+          .filter((itemFilter) => itemFilter.account_code == item)
+          ?.reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseFloat(currentValue.total || 0, 10),
+            0
+          ),
+        total_keluar: newResult.data_payment
+          .filter((itemFilter) => itemFilter.account_code == item)
+          ?.reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseFloat(currentValue.total_keluar || 0, 10),
+            0
+          ),
+      };
+    });
     const result = await generateDokumenLaporanKasPerAnggaran(
-      "../assets/pdfTemplate/laporan/laporan-kas-per-anggaran.html", newResult,
-      newResultByAccountCode,
+      "../assets/pdfTemplate/laporan/laporan-kas-per-anggaran.html",
+      newResult,
+      newResultByAccountCode
     );
-    return helpers.response(res, 200, "GET Dokumen Per anggaran kas tunai berhasil", result);
+    return helpers.response(
+      res,
+      200,
+      "GET Dokumen Per anggaran kas tunai berhasil",
+      result
+    );
   }),
   dokumenLaporanJurnalPerAnggaran: promiseHandler(async (req, res, next) => {
     const { tanggal_awal, tanggal_akhir, period_id, unit_id } = req.query;
 
     //semua data sampai sebelum tanggal_akhir
-    const resultMonthlyPrev = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(true, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(true, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(true, '', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(true, '', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthlyPrev =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        true,
+        "",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFreePrev = await freePaymentModel.getKasFreePaymentIdPayment(
+      true,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKreditPrev = await kreditModel.getAllKreditSubmittedWithDate(
+      true,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebitPrev = await debitModel.getAllDebitSubmittedWithDate(
+      true,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
-    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total || 0, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) : acc[cur.account_code] = cur;
-      return acc;
-    }, {});
+    const reducedArrPrev = [...resultKreditPrev, ...resultDebitPrev].reduce(
+      (acc, cur) => {
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total =
+              parseInt(acc[cur.account_code].total || 0, 10) +
+              parseInt(cur.total || 0, 10))
+          : (acc[cur.account_code] = cur);
+        acc[cur.account_code]
+          ? (acc[cur.account_code].total_keluar =
+              parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10))
+          : (acc[cur.account_code] = cur);
+        return acc;
+      },
+      {}
+    );
 
     const queryPrev =
       unit_id == undefined || unit_id == ""
         ? ""
         : `WHERE unit_unit_id=${unit_id}`;
-    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(queryPrev);
+    const resultCashAccountPrev = await cashAccountModel.getAllCashAccount(
+      queryPrev
+    );
     const newResultCashAccountPrev = {
       saldo_awal_debit: resultCashAccountPrev.reduce(
         (accumulator, currentValue) =>
@@ -1190,31 +1978,82 @@ module.exports = {
         0
       ),
     };
-    const combinedResultPrev = [...resultMonthlyPrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFreePrev.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArrPrev).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResultPrev = [
+      ...resultMonthlyPrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFreePrev.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArrPrev).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasukPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluarPrev = combinedResultPrev.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    console.log(resultMonthlyPrev)
-    const saldoAkhirPrev = (subTotalMasukPrev + newResultCashAccountPrev.saldo_awal_debit) - (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit)
+    console.log(resultMonthlyPrev);
+    const saldoAkhirPrev =
+      subTotalMasukPrev +
+      newResultCashAccountPrev.saldo_awal_debit -
+      (subTotalKeluarPrev + newResultCashAccountPrev.saldo_awal_kredit);
 
     //baru
 
-    const resultMonthly = await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(false, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(false, '', tanggal_awal, tanggal_akhir, period_id, unit_id);
-    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(false, '', tanggal_awal, tanggal_akhir, unit_id);
-    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(false, '', tanggal_awal, tanggal_akhir, unit_id);
+    const resultMonthly =
+      await monthlyPaymentModel.getKasMonthlyPaymentAllStudent(
+        false,
+        "",
+        tanggal_awal,
+        tanggal_akhir,
+        period_id,
+        unit_id
+      );
+    const resultFree = await freePaymentModel.getKasFreePaymentIdPayment(
+      false,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      period_id,
+      unit_id
+    );
+    const resultKredit = await kreditModel.getAllKreditSubmittedWithDate(
+      false,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
+    const resultDebit = await debitModel.getAllDebitSubmittedWithDate(
+      false,
+      "",
+      tanggal_awal,
+      tanggal_akhir,
+      unit_id
+    );
 
     const reducedArr = [...resultKredit, ...resultDebit].reduce((acc, cur) => {
-      acc[cur.account_code] ? acc[cur.account_code].total = parseInt(acc[cur.account_code].total, 10) + parseInt(cur.total || 0, 10) : acc[cur.account_code] = cur;
-      acc[cur.account_code] ? acc[cur.account_code].total_keluar = (parseInt(acc[cur.account_code].total_keluar || 0, 10) + parseInt(cur.total_keluar || 0, 10)) || 0 : acc[cur.account_code] = cur;
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total =
+            parseInt(acc[cur.account_code].total, 10) +
+            parseInt(cur.total || 0, 10))
+        : (acc[cur.account_code] = cur);
+      acc[cur.account_code]
+        ? (acc[cur.account_code].total_keluar =
+            parseInt(acc[cur.account_code].total_keluar || 0, 10) +
+              parseInt(cur.total_keluar || 0, 10) || 0)
+        : (acc[cur.account_code] = cur);
       return acc;
     }, {});
     const query =
@@ -1237,30 +2076,75 @@ module.exports = {
         0
       ),
     };
-    const combinedResult = [...resultMonthly.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...resultFree.map(item => ({ ...item, date_pay: item.payment_rate_date_pay })), ...Object.values(reducedArr).map(item => ({ ...item, date_pay: item.kredit_date }))];
+    const combinedResult = [
+      ...resultMonthly.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...resultFree.map((item) => ({
+        ...item,
+        date_pay: item.payment_rate_date_pay,
+      })),
+      ...Object.values(reducedArr).map((item) => ({
+        ...item,
+        date_pay: item.kredit_date,
+      })),
+    ];
     const subTotalMasuk = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total || 0, 10),
       0
-    )
+    );
     const subTotalKeluar = combinedResult.reduce(
       (accumulator, currentValue) =>
         accumulator + parseInt(currentValue.total_keluar || 0, 10),
       0
-    )
+    );
 
-    const resultUnit = await unitModel.getUnitById(unit_id)
-    const resultPeriod = await periodModel.getTahunAjaranById(period_id)
+    const resultUnit = await unitModel.getUnitById(unit_id);
+    const resultPeriod = period_id
+      ? await periodModel.getTahunAjaranById(period_id)
+      : "Semua";
 
-    const newResult = { unit: unit_id == '' ? 'Semua' : resultUnit.unit_name, tahun_ajaran: `${resultPeriod.period_start}/${resultPeriod.period_end}`, title: `Rekap Laporan per Jenis Anggaran (Jurnal Umum) per Tanggal ${moment(tanggal_awal).format('DD MMMM YYYY')} Sampai ${moment(tanggal_akhir).format('DD MMMM YYYY')}`, data_payment: combinedResult, sub_total_masuk: subTotalMasuk, sub_total_keluar: subTotalKeluar, ...newResultCashAccount, total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit, total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit, saldo_akhir: (subTotalMasuk + newResultCashAccount.saldo_awal_debit) - (subTotalKeluar + newResultCashAccount.saldo_awal_kredit) }
-    const accountCodeArr = helpers.extractUniqueAccountCodes(newResult)
-    console.log(accountCodeArr)
-    const newResultByAccountCode = accountCodeArr.map(item => {
-      const dataFilteredDebit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code?.includes('4-4') || itemFilter.account_code?.includes('4-4')))
-      const dataFilteredKredit = newResult.data_payment.filter(itemFilter => itemFilter.account_code == item && (itemFilter.account_cost_account_code?.includes('5-5') || itemFilter.account_code?.includes('5-5')))
+    const newResult = {
+      unit: unit_id == "" ? "Semua" : resultUnit.unit_name,
+      tahun_ajaran: resultPeriod.period_start?`${resultPeriod.period_start}/${resultPeriod.period_end}`:'Semua',
+      title: `Rekap Laporan per Jenis Anggaran (Jurnal Umum) per Tanggal ${moment(
+        tanggal_awal
+      ).format("DD MMMM YYYY")} Sampai ${moment(tanggal_akhir).format(
+        "DD MMMM YYYY"
+      )}`,
+      data_payment: combinedResult,
+      sub_total_masuk: subTotalMasuk,
+      sub_total_keluar: subTotalKeluar,
+      ...newResultCashAccount,
+      total_masuk: subTotalMasuk + newResultCashAccount.saldo_awal_debit,
+      total_keluar: subTotalKeluar + newResultCashAccount.saldo_awal_kredit,
+      saldo_akhir:
+        subTotalMasuk +
+        newResultCashAccount.saldo_awal_debit -
+        (subTotalKeluar + newResultCashAccount.saldo_awal_kredit),
+    };
+    const accountCodeArr = helpers.extractUniqueAccountCodes(newResult);
+    console.log(accountCodeArr);
+    const newResultByAccountCode = accountCodeArr.map((item) => {
+      const dataFilteredDebit = newResult.data_payment.filter(
+        (itemFilter) =>
+          itemFilter.account_code == item &&
+          (itemFilter.account_cost_account_code?.includes("4-4") ||
+            itemFilter.account_code?.includes("4-4"))
+      );
+      const dataFilteredKredit = newResult.data_payment.filter(
+        (itemFilter) =>
+          itemFilter.account_code == item &&
+          (itemFilter.account_cost_account_code?.includes("5-5") ||
+            itemFilter.account_code?.includes("5-5"))
+      );
       return {
         code: item,
-        description: resultCashAccount.filter(itemAccount => itemAccount?.account_code == item)[0]?.account_description,
+        description: resultCashAccount.filter(
+          (itemAccount) => itemAccount?.account_code == item
+        )[0]?.account_description,
         data_payment: {
           debit: {
             data: dataFilteredDebit,
@@ -1289,22 +2173,32 @@ module.exports = {
             ),
           },
         },
-        total: newResult.data_payment.filter(itemFilter => itemFilter.account_code == item)?.reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.total || 0, 10),
-          0
-        ),
-        total_keluar: newResult.data_payment.filter(itemFilter => itemFilter.account_code == item)?.reduce(
-          (accumulator, currentValue) =>
-            accumulator + parseFloat(currentValue.total_keluar || 0, 10),
-          0
-        ),
-      }
-    })
+        total: newResult.data_payment
+          .filter((itemFilter) => itemFilter.account_code == item)
+          ?.reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseFloat(currentValue.total || 0, 10),
+            0
+          ),
+        total_keluar: newResult.data_payment
+          .filter((itemFilter) => itemFilter.account_code == item)
+          ?.reduce(
+            (accumulator, currentValue) =>
+              accumulator + parseFloat(currentValue.total_keluar || 0, 10),
+            0
+          ),
+      };
+    });
     const result = await generateDokumenLaporanJurnalUmumPerAnggaran(
-      "../assets/pdfTemplate/laporan/laporan-jurnal-umum-per-anggaran.html", newResult,
-      newResultByAccountCode,
+      "../assets/pdfTemplate/laporan/laporan-jurnal-umum-per-anggaran.html",
+      newResult,
+      newResultByAccountCode
     );
-    return helpers.response(res, 200, "GET Dokumen Per anggaran kas tunai berhasil", result);
+    return helpers.response(
+      res,
+      200,
+      "GET Dokumen Per anggaran kas tunai berhasil",
+      result
+    );
   }),
 };
